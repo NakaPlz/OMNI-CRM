@@ -56,12 +56,18 @@ router.post('/', async (req, res) => {
         if (body.object === 'instagram' && body.entry && body.entry[0].messaging) {
             const messagingEvent = body.entry[0].messaging[0];
             if (messagingEvent.message && messagingEvent.message.text) {
+                // Check if the message is from us (echo)
+                const instagramAccountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
+                const isFromMe = messagingEvent.sender.id === instagramAccountId;
+
                 normalizedMessage = {
                     platform: 'instagram',
-                    senderId: messagingEvent.sender.id, // This is the IGSID we need for replying
+                    // If it's from us, the "chat" is with the recipient. If from user, "chat" is with sender.
+                    senderId: isFromMe ? messagingEvent.recipient.id : messagingEvent.sender.id,
                     text: messagingEvent.message.text,
                     timestamp: messagingEvent.timestamp,
-                    messageId: messagingEvent.message.mid
+                    messageId: messagingEvent.message.mid,
+                    sender: isFromMe ? 'me' : 'user'
                 };
             }
         }
