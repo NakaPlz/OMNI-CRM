@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Send, Phone, Instagram, MoreVertical, Paperclip } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
+import { formatMessageTime } from '../utils/dateUtils';
 
 export default function Chats() {
     const { chats, messagesByChat, setMessagesByChat } = useChatContext();
@@ -16,11 +17,13 @@ export default function Chats() {
     const handleSendMessage = async () => {
         if (!message.trim() || !selectedChat) return;
 
+        const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
         const tempMessage = {
             id: Date.now(),
             text: message,
             sender: 'me',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            timestamp: now,
+            time: formatMessageTime(now)
         };
 
         // Optimistic update for the selected chat

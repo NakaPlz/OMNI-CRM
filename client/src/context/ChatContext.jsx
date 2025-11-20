@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { formatMessageTime, formatChatTime } from '../utils/dateUtils';
 
 const ChatContext = createContext();
 
@@ -30,7 +31,8 @@ export const ChatProvider = ({ children }) => {
                 id: data.messageId || Date.now(),
                 text: data.text,
                 sender: data.sender || 'user',
-                time: new Date(data.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'
+                timestamp: data.timestamp, // Store raw timestamp
+                time: formatMessageTime(data.timestamp)
             };
 
             setChats(prevChats => {
@@ -43,7 +45,8 @@ export const ChatProvider = ({ children }) => {
                     updatedChats[existingChatIndex] = {
                         ...chat,
                         lastMessage: data.text,
-                        time: 'Just now',
+                        lastMessageTimestamp: data.timestamp,
+                        time: formatChatTime(data.timestamp),
                         // Only increment unread if the message is NOT from me
                         unread: data.sender === 'me' ? chat.unread : chat.unread + 1
                     };
@@ -54,7 +57,8 @@ export const ChatProvider = ({ children }) => {
                         id: data.senderId, // IMPORTANT: This is the real IGSID/Phone
                         name: data.senderName || `User ${data.senderId.slice(-4)}`,
                         lastMessage: data.text,
-                        time: 'Just now',
+                        lastMessageTimestamp: data.timestamp,
+                        time: formatChatTime(data.timestamp),
                         source: data.platform,
                         unread: data.sender === 'me' ? 0 : 1,
                         avatar: `https://ui-avatars.com/api/?name=${data.platform}&background=random`
