@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { Search, Send, Phone, Instagram, MoreVertical, Paperclip } from 'lucide-react';
+import { Search, Send, Phone, Instagram, MoreVertical, Paperclip, UserPlus } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { formatMessageTime } from '../utils/dateUtils';
+import ContactModal from '../components/ContactModal';
 
 export default function Chats() {
     const { chats, messagesByChat, setMessagesByChat } = useChatContext();
     const [selectedChat, setSelectedChat] = useState(null);
     const [message, setMessage] = useState('');
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+    const handleContactSaved = (success) => {
+        setIsContactModalOpen(false);
+        if (success) {
+            console.log('Contact saved successfully');
+        }
+    };
 
     const getSourceIcon = (source) => {
         if (source === 'whatsapp') return <Phone size={16} className="text-green-500" />;
@@ -17,7 +26,7 @@ export default function Chats() {
     const handleSendMessage = async () => {
         if (!message.trim() || !selectedChat) return;
 
-        const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const now = Math.floor(Date.now() / 1000);
         const tempMessage = {
             id: Date.now(),
             text: message,
@@ -26,7 +35,6 @@ export default function Chats() {
             time: formatMessageTime(now)
         };
 
-        // Optimistic update for the selected chat
         setMessagesByChat(prev => ({
             ...prev,
             [selectedChat.id]: [...(prev[selectedChat.id] || []), tempMessage]
@@ -53,7 +61,6 @@ export default function Chats() {
         }
     };
 
-    // Get messages for the selected chat, or empty array
     const currentMessages = selectedChat ? (messagesByChat[selectedChat.id] || []) : [];
 
     return (
@@ -82,8 +89,7 @@ export default function Chats() {
                             <div
                                 key={chat.id}
                                 onClick={() => setSelectedChat(chat)}
-                                className={`p-4 border-b border-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-800' : ''
-                                    }`}
+                                className={`p-4 border-b border-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-800' : ''}`}
                             >
                                 <div className="flex gap-3">
                                     <img src={chat.avatar} alt={chat.name} className="w-12 h-12 rounded-full" />
@@ -127,9 +133,19 @@ export default function Chats() {
                                 </div>
                             </div>
                         </div>
-                        <button className="text-slate-400 hover:text-slate-200">
-                            <MoreVertical size={20} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setIsContactModalOpen(true)}
+                                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                title="Save Contact"
+                            >
+                                <UserPlus size={18} />
+                                <span>Save Contact</span>
+                            </button>
+                            <button className="text-slate-400 hover:text-slate-200">
+                                <MoreVertical size={20} />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Messages */}
@@ -151,8 +167,7 @@ export default function Chats() {
                                             }`}
                                     >
                                         <p>{msg.text}</p>
-                                        <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'
-                                            }`}>
+                                        <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'}`}>
                                             {msg.time}
                                         </span>
                                     </div>
@@ -189,6 +204,13 @@ export default function Chats() {
                     <p>Select a chat to start messaging</p>
                 </div>
             )}
+
+            {/* Contact Modal */}
+            <ContactModal
+                isOpen={isContactModalOpen}
+                onClose={handleContactSaved}
+                chatInfo={selectedChat}
+            />
         </div>
     );
 }
