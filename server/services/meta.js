@@ -1,8 +1,9 @@
 const axios = require('axios');
 
-const META_API_VERSION = 'v18.0';
+const META_API_VERSION = 'v21.0';
 const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
-const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID;
+// Use the provided ID as default if env var is missing
+const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
 
 const sendInstagramMessage = async (recipientId, text) => {
     if (!META_ACCESS_TOKEN) {
