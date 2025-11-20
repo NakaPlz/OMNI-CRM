@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Send, Phone, Instagram, MoreVertical, Paperclip } from 'lucide-react';
+import { io } from 'socket.io-client';
 
 // Mock Data
 const MOCK_CHATS = [
@@ -40,8 +41,40 @@ const MOCK_MESSAGES = [
 ];
 
 export default function Chats() {
+    const [chats, setChats] = useState(MOCK_CHATS);
     const [selectedChat, setSelectedChat] = useState(MOCK_CHATS[0]);
+    const [messages, setMessages] = useState(MOCK_MESSAGES);
     const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        // Connect to Socket.io
+        // In production (Easypanel), it connects to the same domain automatically
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to socket server');
+        });
+
+        socket.on('new_message', (data) => {
+            console.log('New message received:', data);
+
+            // For demo: Append a notification message
+            const newMessage = {
+                id: Date.now(),
+                text: '🔔 New Webhook Event Received! (See console for payload)',
+                sender: 'user',
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, newMessage]);
+
+            // Update the first chat to show activity
+            setChats(prev => prev.map((chat, index) =>
+                index === 0 ? { ...chat, lastMessage: '🔔 New Webhook Event...', time: 'Just now', unread: chat.unread + 1 } : chat
+            ));
+        });
+
+        return () => socket.disconnect();
+    }, []);
 
     const getSourceIcon = (source) => {
         if (source === 'whatsapp') return <Phone size={16} className="text-green-500" />;
@@ -65,7 +98,7 @@ export default function Chats() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                    {MOCK_CHATS.map((chat) => (
+                    {chats.map((chat) => (
                         <div
                             key={chat.id}
                             onClick={() => setSelectedChat(chat)}
@@ -120,7 +153,7 @@ export default function Chats() {
 
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {MOCK_MESSAGES.map((msg) => (
+                        {messages.map((msg) => (
                             <div
                                 key={msg.id}
                                 className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}

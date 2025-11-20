@@ -47,7 +47,10 @@ router.post('/', async (req, res) => {
     }
 
     // Process the message (Here we would save to DB and emit to socket.io for frontend)
-    // For now, we just log it.
+    if (req.io) {
+        console.log('Emitting new_message event to clients');
+        req.io.emit('new_message', body);
+    }
 
     // Return 200 to Meta immediately
     res.status(200).send('EVENT_RECEIVED');
