@@ -9,19 +9,22 @@ const sendInstagramMessage = async (recipientId, text) => {
         throw new Error('META_ACCESS_TOKEN is not configured');
     }
 
-    const url = `https://graph.facebook.com/${META_API_VERSION}/me/messages`;
+    if (!INSTAGRAM_ACCOUNT_ID) {
+        throw new Error('INSTAGRAM_ACCOUNT_ID is not configured');
+    }
 
-    // For Instagram, we usually send to the conversation ID or user ID depending on the entry point.
-    // Assuming recipientId is the IGSID (Instagram Scoped User ID).
+    // Use the Instagram Business Account ID in the URL
+    const url = `https://graph.facebook.com/${META_API_VERSION}/${INSTAGRAM_ACCOUNT_ID}/messages`;
 
     const payload = {
         recipient: { id: recipientId },
-        message: { text: text },
-        access_token: META_ACCESS_TOKEN
+        message: { text: text }
     };
 
     try {
-        const response = await axios.post(url, payload);
+        const response = await axios.post(url, payload, {
+            params: { access_token: META_ACCESS_TOKEN }
+        });
         return response.data;
     } catch (error) {
         console.error('Error sending Instagram message:', error.response ? error.response.data : error.message);
