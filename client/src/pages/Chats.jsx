@@ -47,8 +47,6 @@ export default function Chats() {
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        // Connect to Socket.io
-        // In production (Easypanel), it connects to the same domain automatically
         const socket = io();
 
         socket.on('connect', () => {
@@ -58,19 +56,49 @@ export default function Chats() {
         socket.on('new_message', (data) => {
             console.log('New message received:', data);
 
-            // For demo: Append a notification message
+            // Create a new message object
             const newMessage = {
-                id: Date.now(),
-                text: '🔔 New Webhook Event Received! (See console for payload)',
+                id: data.messageId || Date.now(),
+                text: data.text,
                 sender: 'user',
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                time: new Date(data.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'
             };
-            setMessages(prev => [...prev, newMessage]);
 
-            // Update the first chat to show activity
-            setChats(prev => prev.map((chat, index) =>
-                index === 0 ? { ...chat, lastMessage: '🔔 New Webhook Event...', time: 'Just now', unread: chat.unread + 1 } : chat
-            ));
+            setChats(prevChats => {
+                const existingChatIndex = prevChats.findIndex(c => c.id === data.senderId);
+
+                if (existingChatIndex !== -1) {
+                    // Update existing chat
+                    const updatedChats = [...prevChats];
+                    const chat = updatedChats[existingChatIndex];
+                    updatedChats[existingChatIndex] = {
+                        ...chat,
+                        lastMessage: data.text,
+                        time: 'Just now',
+                        unread: chat.unread + 1
+                    };
+                    return updatedChats;
+                } else {
+                    // Create new chat
+                    const newChat = {
+                        id: data.senderId, // IMPORTANT: This is the real IGSID/Phone
+                        name: data.senderName || `User ${data.senderId.slice(-4)}`,
+                        lastMessage: data.text,
+                        time: 'Just now',
+                        source: data.platform,
+                        unread: 1,
+                        avatar: `https://ui-avatars.com/api/?name=${data.platform}&background=random`
+                    };
+                    return [newChat, ...prevChats];
+                }
+            });
+
+            // If the message belongs to the currently selected chat, add it to the messages list
+            // Note: In a real app with proper state management (Redux/Context), this would be cleaner.
+            // Here we rely on the fact that if we are "viewing" this user, we should see the message.
+            // However, accessing 'selectedChat' inside this closure might be stale if not in dependency array.
+            // For this simple demo, we'll just let the user click the chat to refresh messages or 
+            // use a functional update if we tracked 'selectedChatId' in a ref.
         });
 
         return () => socket.disconnect();

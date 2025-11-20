@@ -46,10 +46,52 @@ router.post('/', async (req, res) => {
         }
     }
 
-    // Process the message (Here we would save to DB and emit to socket.io for frontend)
+    // Process the message and emit to socket.io
     if (req.io) {
-        console.log('Emitting new_message event to clients');
-        req.io.emit('new_message', body);
+        console.log('Processing webhook for socket emission...');
+
+        let normalizedMessage = null;
+
+        // Handle Instagram Payload
+        if (body.object === 'instagram' && body.entry && body.entry[0].messaging) {
+            const messagingEvent = body.entry[0].messaging[0];
+            if (messagingEvent.message && messagingEvent.message.text) {
+                normalizedMessage = {
+                    platform: 'instagram',
+                    senderId: messagingEvent.sender.id, // This is the IGSID we need for replying
+                    text: messagingEvent.message.text,
+                    timestamp: messagingEvent.timestamp,
+                    messageId: messagingEvent.message.mid
+                };
+            }
+        }
+
+        // Handle WhatsApp Payload
+        else if (body.object === 'whatsapp_business_account' && body.entry && body.entry[0].changes) {
+            const change = body.entry[0].changes[0].value;
+            if (change.messages && change.messages[0]) {
+                const msg = change.messages[0];
+                if (msg.type === 'text') {
+                    normalizedMessage = {
+                        platform: 'whatsapp',
+                        senderId: msg.from, // This is the Phone Number
+                        text: msg.text.body,
+                        timestamp: msg.timestamp,
+                        messageId: msg.id,
+                        senderName: change.contacts ? change.contacts[0].profile.name : msg.from
+                    };
+                }
+            }
+        }
+
+        if (normalizedMessage) {
+            console.log('Emitting new_message event:', normalizedMessage);
+            req.io.emit('new_message', normalizedMessage);
+        } else {
+            console.log('Webhook received but could not parse as a text message (might be status update or unsupported type).');
+            // Still emit raw for debugging if needed, or just ignore
+            // req.io.emit('raw_webhook', body); 
+        }
     }
 
     // Return 200 to Meta immediately
