@@ -4,13 +4,21 @@ export const formatMessageTime = (timestamp) => {
 
     const messageDate = new Date(timestamp * 1000);
     const now = new Date();
+
+    // Check if same day by comparing date strings
+    const isToday = messageDate.toDateString() === now.toDateString();
+
+    // Check if yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = messageDate.toDateString() === yesterday.toDateString();
+
+    // Calculate difference in days
     const diffMs = now - messageDate;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    // If message is from today, show time
-    if (diffDays === 0) {
+    // If message is from today, show time only
+    if (isToday) {
         return messageDate.toLocaleTimeString('es-AR', {
             hour: '2-digit',
             minute: '2-digit',
@@ -19,7 +27,7 @@ export const formatMessageTime = (timestamp) => {
     }
 
     // If message is from yesterday
-    if (diffDays === 1) {
+    if (isYesterday) {
         return 'Ayer ' + messageDate.toLocaleTimeString('es-AR', {
             hour: '2-digit',
             minute: '2-digit',
@@ -56,9 +64,17 @@ export const formatChatTime = (timestamp) => {
 
     const messageDate = new Date(timestamp * 1000);
     const now = new Date();
+
+    // Check if same day
+    const isToday = messageDate.toDateString() === now.toDateString();
+
+    // Check if yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = messageDate.toDateString() === yesterday.toDateString();
+
     const diffMs = now - messageDate;
     const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
     // Less than 1 minute
@@ -71,8 +87,8 @@ export const formatChatTime = (timestamp) => {
         return `${diffMins}m`;
     }
 
-    // Less than 24 hours (today)
-    if (diffHours < 24 && diffDays === 0) {
+    // If today, show time
+    if (isToday) {
         return messageDate.toLocaleTimeString('es-AR', {
             hour: '2-digit',
             minute: '2-digit',
@@ -81,7 +97,7 @@ export const formatChatTime = (timestamp) => {
     }
 
     // Yesterday
-    if (diffDays === 1) {
+    if (isYesterday) {
         return 'Ayer';
     }
 
