@@ -1,88 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Send, Phone, Instagram, MoreVertical, Paperclip } from 'lucide-react';
-import { io } from 'socket.io-client';
+import { useChatContext } from '../context/ChatContext';
 
 export default function Chats() {
-    const [chats, setChats] = useState([]);
+    const { chats, messagesByChat, setMessagesByChat } = useChatContext();
     const [selectedChat, setSelectedChat] = useState(null);
-    // State to store messages per chat: { [chatId]: [messages] }
-    const [messagesByChat, setMessagesByChat] = useState({});
     const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        const socket = io();
-
-        socket.on('connect', () => {
-            console.log('Connected to socket server');
-        });
-
-        socket.on('new_message', (data) => {
-            console.log('New message received:', data);
-
-            // Create a new message object
-            const newMessage = {
-                id: data.messageId || Date.now(),
-                text: data.text,
-                sender: data.sender || 'user',
-                time: new Date(data.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'
-            };
-
-            setChats(prevChats => {
-                const existingChatIndex = prevChats.findIndex(c => c.id === data.senderId);
-
-                if (existingChatIndex !== -1) {
-                    // Update existing chat
-                    const updatedChats = [...prevChats];
-                    const chat = updatedChats[existingChatIndex];
-                    updatedChats[existingChatIndex] = {
-                        ...chat,
-                        lastMessage: data.text,
-                        time: 'Just now',
-                        // Only increment unread if the message is NOT from me
-                        unread: data.sender === 'me' ? chat.unread : chat.unread + 1
-                    };
-                    return updatedChats;
-                } else {
-                    // Create new chat
-                    const newChat = {
-                        id: data.senderId, // IMPORTANT: This is the real IGSID/Phone
-                        name: data.senderName || `User ${data.senderId.slice(-4)}`,
-                        lastMessage: data.text,
-                        time: 'Just now',
-                        source: data.platform,
-                        unread: data.sender === 'me' ? 0 : 1,
-                        avatar: `https://ui-avatars.com/api/?name=${data.platform}&background=random`
-                    };
-                    return [newChat, ...prevChats];
-                }
-            });
-
-            // Update messages for this specific chat
-            setMessagesByChat(prev => {
-                const existingMessages = prev[data.senderId] || [];
-
-                // Check if this message already exists (to avoid duplicates from webhook echoes)
-                // We check the last few messages for a match with same text and sender
-                const isDuplicate = existingMessages.slice(-3).some(msg =>
-                    msg.text === data.text &&
-                    msg.sender === (data.sender || 'user') &&
-                    Math.abs(msg.id - (data.messageId || Date.now())) < 5000 // Within 5 seconds
-                );
-
-                if (isDuplicate) {
-                    console.log('Duplicate message detected, skipping:', data.text);
-                    return prev;
-                }
-
-                return {
-                    ...prev,
-                    [data.senderId]: [...existingMessages, newMessage]
-                };
-            });
-        });
-
-        return () => socket.disconnect();
-    }, []);
 
     const getSourceIcon = (source) => {
         if (source === 'whatsapp') return <Phone size={16} className="text-green-500" />;
