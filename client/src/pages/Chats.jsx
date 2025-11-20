@@ -82,10 +82,54 @@ export default function Chats() {
         return null;
     };
 
+    const handleSendMessage = async () => {
+        if (!message.trim() || !selectedChat) return;
+
+        const tempMessage = {
+            id: Date.now(),
+            text: message,
+            sender: 'me',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        // Optimistic update
+        setMessages(prev => [...prev, tempMessage]);
+        setMessage('');
+
+        try {
+            // In a real app, we would use the actual recipient ID (e.g., IGSID or Phone Number)
+            // For this demo/mock, we'll use a placeholder or the chat ID if it was real.
+            // Since MOCK_CHATS don't have real IGSIDs, we'll assume the user provides one or we use a test one.
+            // For now, we'll send the request to the backend to verify the flow.
+
+            // NOTE: In a real scenario, selectedChat.id should be the Instagram Scoped User ID (IGSID).
+            // We will use a hardcoded ID for testing if needed, or use selectedChat.id
+
+            const response = await fetch('/api/messages/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipientId: selectedChat.id, // This needs to be a valid IGSID for Instagram
+                    text: tempMessage.text,
+                    platform: selectedChat.source
+                })
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                console.error('Failed to send message:', data.error);
+                // Optionally show error to user
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    };
+
     return (
         <div className="flex h-full w-full bg-slate-950">
             {/* Chat List */}
             <div className="w-96 border-r border-slate-800 flex flex-col bg-slate-900/50">
+                {/* ... (Search and List code remains same) ... */}
                 <div className="p-4 border-b border-slate-800">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -184,10 +228,14 @@ export default function Chats() {
                                 type="text"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                                 placeholder="Type a message..."
                                 className="flex-1 bg-slate-800 text-slate-200 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
                             />
-                            <button className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                            <button
+                                onClick={handleSendMessage}
+                                className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                            >
                                 <Send size={20} />
                             </button>
                         </div>

@@ -1,12 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const webhookRoutes = require('./routes/webhooks');
-
-dotenv.config();
-
+const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
+
+// Routes
+const webhookRoutes = require('./routes/webhooks');
+const messageRoutes = require('./routes/messages');
+
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -15,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 // Setup Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for now (adjust for production)
+        origin: "*", // Allow all origins for now
         methods: ["GET", "POST"]
     }
 });
@@ -36,10 +39,9 @@ app.use((req, res, next) => {
     next();
 });
 
-const path = require('path');
-
-// Routes
+// API Routes
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Serve static files from the React client
 app.use(express.static(path.join(__dirname, '../client/dist')));
