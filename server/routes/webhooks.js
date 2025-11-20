@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
                     // If it's from us, the "chat" is with the recipient. If from user, "chat" is with sender.
                     senderId: isFromMe ? messagingEvent.recipient.id : messagingEvent.sender.id,
                     text: messagingEvent.message.text,
-                    timestamp: messagingEvent.timestamp,
+                    timestamp: Math.floor(messagingEvent.timestamp / 1000), // Convert from ms to seconds
                     messageId: messagingEvent.message.mid,
                     sender: isFromMe ? 'me' : 'user'
                 };
