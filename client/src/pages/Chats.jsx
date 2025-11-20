@@ -17,6 +17,46 @@ export default function Chats() {
         });
 
         socket.on('new_message', (data) => {
+            console.log('New message received:', data);
+
+            // Create a new message object
+            const newMessage = {
+                id: data.messageId || Date.now(),
+                text: data.text,
+                sender: data.sender || 'user',
+                time: new Date(data.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Just now'
+            };
+
+            setChats(prevChats => {
+                const existingChatIndex = prevChats.findIndex(c => c.id === data.senderId);
+
+                if (existingChatIndex !== -1) {
+                    // Update existing chat
+                    const updatedChats = [...prevChats];
+                    const chat = updatedChats[existingChatIndex];
+                    updatedChats[existingChatIndex] = {
+                        ...chat,
+                        lastMessage: data.text,
+                        time: 'Just now',
+                        // Only increment unread if the message is NOT from me
+                        unread: data.sender === 'me' ? chat.unread : chat.unread + 1
+                    };
+                    return updatedChats;
+                } else {
+                    // Create new chat
+                    const newChat = {
+                        id: data.senderId, // IMPORTANT: This is the real IGSID/Phone
+                        name: data.senderName || `User ${data.senderId.slice(-4)}`,
+                        lastMessage: data.text,
+                        time: 'Just now',
+                        source: data.platform,
+                        unread: data.sender === 'me' ? 0 : 1,
+                        avatar: `https://ui-avatars.com/api/?name=${data.platform}&background=random`
+                    };
+                    return [newChat, ...prevChats];
+                }
+            });
+
             // Update messages for this specific chat
             setMessagesByChat(prev => ({
                 ...prev,
