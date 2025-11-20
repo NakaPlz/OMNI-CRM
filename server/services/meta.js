@@ -1,21 +1,12 @@
 const axios = require('axios');
 
-const META_API_VERSION = 'v21.0';
-const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
-// Use the provided ID as default if env var is missing
-const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
-
 const sendInstagramMessage = async (recipientId, text) => {
-    if (!META_ACCESS_TOKEN) {
-        throw new Error('META_ACCESS_TOKEN is not configured');
-    }
+    // User explicitly requested this URL and Token
+    const token = process.env.META_ACCESS_TOKEN || 'IGAAVFwYY1nqhBZAFFvaGdUU0lFd3RwaUkwVjRWb2hFT0ZAkMUpWbDZA2TjVMU2syaG9udU4zR1MzYkhmS3V2MmNUY25MWnBMb040YWwySW5EUlVYaTZAPTGxpc202cTFScGViNm1vNlZA2cmh3Sk1VOFFRejdfVldZARGpHQlNSRnBEWQZDZD';
+    const accountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
 
-    if (!INSTAGRAM_ACCOUNT_ID) {
-        throw new Error('INSTAGRAM_ACCOUNT_ID is not configured');
-    }
-
-    // Use the Instagram Business Account ID in the URL
-    const url = `https://graph.facebook.com/${META_API_VERSION}/${INSTAGRAM_ACCOUNT_ID}/messages`;
+    // Using graph.instagram.com as explicitly requested by user
+    const url = `https://graph.instagram.com/v24.0/${accountId}/messages`;
 
     const payload = {
         recipient: { id: recipientId },
@@ -24,7 +15,10 @@ const sendInstagramMessage = async (recipientId, text) => {
 
     try {
         const response = await axios.post(url, payload, {
-            params: { access_token: META_ACCESS_TOKEN }
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
         return response.data;
     } catch (error) {
