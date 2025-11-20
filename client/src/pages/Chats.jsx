@@ -58,10 +58,27 @@ export default function Chats() {
             });
 
             // Update messages for this specific chat
-            setMessagesByChat(prev => ({
-                ...prev,
-                [data.senderId]: [...(prev[data.senderId] || []), newMessage]
-            }));
+            setMessagesByChat(prev => {
+                const existingMessages = prev[data.senderId] || [];
+
+                // Check if this message already exists (to avoid duplicates from webhook echoes)
+                // We check the last few messages for a match with same text and sender
+                const isDuplicate = existingMessages.slice(-3).some(msg =>
+                    msg.text === data.text &&
+                    msg.sender === (data.sender || 'user') &&
+                    Math.abs(msg.id - (data.messageId || Date.now())) < 5000 // Within 5 seconds
+                );
+
+                if (isDuplicate) {
+                    console.log('Duplicate message detected, skipping:', data.text);
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    [data.senderId]: [...existingMessages, newMessage]
+                };
+            });
         });
 
         return () => socket.disconnect();
