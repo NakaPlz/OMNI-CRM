@@ -5,7 +5,7 @@ import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
 
 export default function Chats() {
-    const { chats, messagesByChat, setMessagesByChat, updateChatName } = useChatContext();
+    const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead } = useChatContext();
     const [selectedChat, setSelectedChat] = useState(null);
     const [message, setMessage] = useState('');
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -19,6 +19,12 @@ export default function Chats() {
             // Also update the selected chat's name locally
             setSelectedChat(prev => ({ ...prev, name: contactData.name }));
         }
+    };
+
+    const handleChatSelect = (chat) => {
+        setSelectedChat(chat);
+        // Mark chat as read when selected
+        markChatAsRead(chat.id);
     };
 
     const getSourceIcon = (source) => {
@@ -92,7 +98,7 @@ export default function Chats() {
                         chats.map((chat) => (
                             <div
                                 key={chat.id}
-                                onClick={() => setSelectedChat(chat)}
+                                onClick={() => handleChatSelect(chat)}
                                 className={`p-4 border-b border-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-800' : ''}`}
                             >
                                 <div className="flex gap-3">

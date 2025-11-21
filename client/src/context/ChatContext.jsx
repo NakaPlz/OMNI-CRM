@@ -102,12 +102,24 @@ export const ChatProvider = ({ children }) => {
         });
     };
 
+    // Function to mark chat as read (clear unread count)
+    const markChatAsRead = (chatId) => {
+        setChats(prevChats => {
+            return prevChats.map(chat =>
+                chat.id === chatId
+                    ? { ...chat, unread: 0 }
+                    : chat
+            );
+        });
+    };
+
     const value = {
         chats,
         setChats,
         messagesByChat,
         setMessagesByChat,
-        updateChatName
+        updateChatName,
+        markChatAsRead
     };
 
     return (
