@@ -82,3 +82,70 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Logo Animations */
+.logo-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-text {
+  display: inline-block;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: slideInFromLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.logo-risut {
+  animation-delay: 0.1s;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.logo-omni {
+  animation-delay: 0.3s;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: 0.9em;
+  letter-spacing: 0.05em;
+}
+
+.logo-underline {
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+  border-radius: 2px;
+  margin-top: 8px;
+  animation: expandWidth 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.5s;
+  width: 0;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes expandWidth {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}

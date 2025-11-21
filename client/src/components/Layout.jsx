@@ -16,9 +16,14 @@ export default function Layout({ children }) {
             {/* Sidebar */}
             <aside className="w-72 bg-slate-900 border-r border-slate-800 flex flex-col">
                 <div className="p-6 border-b border-slate-800">
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                        RiSut's Omni-CRM
-                    </h1>
+                    <div className="logo-container">
+                        <h1 className="text-2xl font-bold mb-1">
+                            <span className="logo-text logo-risut">RiSut's</span>
+                            <br />
+                            <span className="logo-text logo-omni">Omni-CRM</span>
+                        </h1>
+                        <div className="logo-underline"></div>
+                    </div>
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
