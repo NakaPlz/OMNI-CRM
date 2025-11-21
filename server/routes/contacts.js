@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const contactService = require('../services/contactService');
+const contactService = require('../services/supabaseContactService');
 
 // Get all contacts
 router.get('/', async (req, res) => {
@@ -50,18 +50,14 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Check if contact already exists for this chat
-        const existingContact = await contactService.getContactByChatId(chatId);
-        if (existingContact) {
-            // Update existing contact instead
-            const updated = await contactService.updateContact(existingContact.id, {
-                name, email, phone, company, notes
-            });
-            return res.json({ success: true, contact: updated, updated: true });
-        }
-
         const contact = await contactService.createContact({
-            name, email, phone, company, notes, source, chatId
+            chat_id: chatId,
+            name,
+            email,
+            phone,
+            company,
+            notes,
+            source
         });
 
         res.status(201).json({ success: true, contact });
