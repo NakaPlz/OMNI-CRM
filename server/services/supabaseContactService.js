@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const chatService = require('./chatService');
 
 /**
  * Get all contacts from Supabase
@@ -68,6 +69,7 @@ async function createContact(contactData) {
         // Check if contact already exists
         const existing = await getContactByChatId(chat_id);
 
+        let result;
         if (existing) {
             // Update existing contact
             const { data, error } = await supabase
@@ -85,7 +87,7 @@ async function createContact(contactData) {
                 .single();
 
             if (error) throw error;
-            return data;
+            result = data;
         } else {
             // Create new contact
             const { data, error } = await supabase
@@ -103,8 +105,25 @@ async function createContact(contactData) {
                 .single();
 
             if (error) throw error;
-            return data;
+            result = data;
         }
+
+        // Update chat name in chats table
+        try {
+            const chat = await chatService.getChatById(chat_id);
+            if (chat) {
+                await supabase
+                    .from('chats')
+                    .update({ name })
+                    .eq('chat_id', chat_id);
+                console.log(`Updated chat name to: ${name}`);
+            }
+        } catch (chatError) {
+            console.error('Error updating chat name:', chatError);
+            // Don't fail the contact save if chat update fails
+        }
+
+        return result;
     } catch (error) {
         console.error('Error creating/updating contact:', error);
         throw error;
