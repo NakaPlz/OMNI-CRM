@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, Send, Phone, Instagram, MoreVertical, Paperclip, UserPlus } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
+import Avatar from '../components/Avatar';
 
 export default function Chats() {
     const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead } = useChatContext();
@@ -102,7 +103,7 @@ export default function Chats() {
                                 className={`p-4 border-b border-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-800' : ''}`}
                             >
                                 <div className="flex gap-3">
-                                    <img src={chat.avatar} alt={chat.name} className="w-12 h-12 rounded-full" />
+                                    <Avatar name={chat.name} size="md" />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start mb-1">
                                             <h3 className="font-medium text-slate-200 truncate">{chat.name}</h3>
@@ -134,7 +135,7 @@ export default function Chats() {
                     {/* Header */}
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                         <div className="flex items-center gap-3">
-                            <img src={selectedChat.avatar} alt={selectedChat.name} className="w-10 h-10 rounded-full" />
+                            <Avatar name={selectedChat.name} size="md" />
                             <div>
                                 <h2 className="font-bold text-slate-100">{selectedChat.name}</h2>
                                 <div className="flex items-center gap-1 text-xs text-slate-400">
@@ -210,17 +211,22 @@ export default function Chats() {
                     </div>
                 </div>
             ) : (
-                <div className="flex-1 flex items-center justify-center bg-slate-950 text-slate-500">
-                    <p>Select a chat to start messaging</p>
+                <div className="flex-1 flex items-center justify-center bg-slate-950">
+                    <div className="text-center text-slate-500">
+                        <MessageCircle size={64} className="mx-auto mb-4 opacity-50" />
+                        <p className="text-lg font-medium">Select a chat to start messaging</p>
+                        <p className="text-sm mt-2">Choose a conversation from the list</p>
+                    </div>
                 </div>
             )}
 
             {/* Contact Modal */}
-            <ContactModal
-                isOpen={isContactModalOpen}
-                onClose={handleContactSaved}
-                chatInfo={selectedChat}
-            />
+            {isContactModalOpen && selectedChat && (
+                <ContactModal
+                    chatId={selectedChat.id}
+                    onClose={handleContactSaved}
+                />
+            )}
         </div>
     );
 }
