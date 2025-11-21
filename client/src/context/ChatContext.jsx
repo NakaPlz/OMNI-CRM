@@ -31,7 +31,7 @@ export const ChatProvider = ({ children }) => {
                 id: data.messageId || Date.now(),
                 text: data.text,
                 sender: data.sender || 'user',
-                timestamp: data.timestamp, // Store raw timestamp
+                timestamp: data.timestamp,
                 time: formatMessageTime(data.timestamp)
             };
 
@@ -47,14 +47,13 @@ export const ChatProvider = ({ children }) => {
                         lastMessage: data.text,
                         lastMessageTimestamp: data.timestamp,
                         time: formatChatTime(data.timestamp),
-                        // Only increment unread if the message is NOT from me
                         unread: data.sender === 'me' ? chat.unread : chat.unread + 1
                     };
                     return updatedChats;
                 } else {
                     // Create new chat
                     const newChat = {
-                        id: data.senderId, // IMPORTANT: This is the real IGSID/Phone
+                        id: data.senderId,
                         name: data.senderName || `User ${data.senderId.slice(-4)}`,
                         lastMessage: data.text,
                         lastMessageTimestamp: data.timestamp,
@@ -71,12 +70,10 @@ export const ChatProvider = ({ children }) => {
             setMessagesByChat(prev => {
                 const existingMessages = prev[data.senderId] || [];
 
-                // Check if this message already exists (to avoid duplicates from webhook echoes)
-                // We check the last few messages for a match with same text and sender
                 const isDuplicate = existingMessages.slice(-3).some(msg =>
                     msg.text === data.text &&
                     msg.sender === (data.sender || 'user') &&
-                    Math.abs(msg.id - (data.messageId || Date.now())) < 5000 // Within 5 seconds
+                    Math.abs(msg.id - (data.messageId || Date.now())) < 5000
                 );
 
                 if (isDuplicate) {
@@ -94,11 +91,23 @@ export const ChatProvider = ({ children }) => {
         return () => socket.disconnect();
     }, []);
 
+    // Function to update chat name when contact is saved
+    const updateChatName = (chatId, newName) => {
+        setChats(prevChats => {
+            return prevChats.map(chat =>
+                chat.id === chatId
+                    ? { ...chat, name: newName }
+                    : chat
+            );
+        });
+    };
+
     const value = {
         chats,
         setChats,
         messagesByChat,
-        setMessagesByChat
+        setMessagesByChat,
+        updateChatName
     };
 
     return (

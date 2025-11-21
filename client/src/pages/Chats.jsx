@@ -5,15 +5,19 @@ import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
 
 export default function Chats() {
-    const { chats, messagesByChat, setMessagesByChat } = useChatContext();
+    const { chats, messagesByChat, setMessagesByChat, updateChatName } = useChatContext();
     const [selectedChat, setSelectedChat] = useState(null);
     const [message, setMessage] = useState('');
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
-    const handleContactSaved = (success) => {
+    const handleContactSaved = async (success, contactData) => {
         setIsContactModalOpen(false);
-        if (success) {
+        if (success && contactData) {
             console.log('Contact saved successfully');
+            // Update the chat name with the contact name
+            updateChatName(selectedChat.id, contactData.name);
+            // Also update the selected chat's name locally
+            setSelectedChat(prev => ({ ...prev, name: contactData.name }));
         }
     };
 
