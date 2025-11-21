@@ -15,7 +15,69 @@ export const useChatContext = () => {
 export const ChatProvider = ({ children }) => {
     const [chats, setChats] = useState([]);
     const [messagesByChat, setMessagesByChat] = useState({});
+    const [loading, setLoading] = useState(true);
 
+    // Load chats and messages from API on mount
+    useEffect(() => {
+        const loadChatHistory = async () => {
+            try {
+                // Fetch all chats
+                const chatsResponse = await fetch('/api/chats');
+                const chatsData = await chatsResponse.json();
+
+                if (chatsData.success && chatsData.chats.length > 0) {
+                    // Transform database format to frontend format
+                    const transformedChats = chatsData.chats.map(chat => ({
+                        id: chat.chat_id,
+                        name: chat.name,
+                        lastMessage: chat.last_message,
+                        lastMessageTimestamp: chat.last_message_timestamp,
+                        time: formatChatTime(chat.last_message_timestamp),
+                        source: chat.source,
+                        unread: 0,
+                        avatar: chat.avatar
+                    }));
+
+                    setChats(transformedChats);
+
+                    // Fetch messages for each chat
+                    const messagesPromises = chatsData.chats.map(async (chat) => {
+                        const messagesResponse = await fetch(`/api/chats/${chat.chat_id}/messages`);
+                        const messagesData = await messagesResponse.json();
+
+                        if (messagesData.success) {
+                            const transformedMessages = messagesData.messages.map(msg => ({
+                                id: msg.message_id || msg.id,
+                                text: msg.text,
+                                sender: msg.sender,
+                                timestamp: msg.timestamp,
+                                time: formatMessageTime(msg.timestamp)
+                            }));
+
+                            return { chatId: chat.chat_id, messages: transformedMessages };
+                        }
+                        return { chatId: chat.chat_id, messages: [] };
+                    });
+
+                    const messagesResults = await Promise.all(messagesPromises);
+                    const messagesObj = {};
+                    messagesResults.forEach(result => {
+                        messagesObj[result.chatId] = result.messages;
+                    });
+
+                    setMessagesByChat(messagesObj);
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadChatHistory();
+    }, []);
+
+    // Socket.io for real-time updates
     useEffect(() => {
         const socket = io();
 
@@ -119,7 +181,8 @@ export const ChatProvider = ({ children }) => {
         messagesByChat,
         setMessagesByChat,
         updateChatName,
-        markChatAsRead
+        markChatAsRead,
+        loading
     };
 
     return (

@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const chatService = require('../services/chatService');
 
 // In-memory storage for settings (in a real app, use a DB)
 let forwardingConfig = {
@@ -93,6 +94,34 @@ router.post('/', async (req, res) => {
         if (normalizedMessage) {
             console.log('Emitting new_message event:', normalizedMessage);
             req.io.emit('new_message', normalizedMessage);
+
+            // Save to database
+            try {
+                // Save or update chat
+                await chatService.createOrUpdateChat({
+                    chat_id: normalizedMessage.senderId,
+                    name: normalizedMessage.senderName || `User ${normalizedMessage.senderId.slice(-4)}`,
+                    source: normalizedMessage.platform,
+                    last_message: normalizedMessage.text,
+                    last_message_timestamp: normalizedMessage.timestamp,
+                    avatar: `https://ui-avatars.com/api/?name=${normalizedMessage.platform}&background=random`
+                });
+
+                // Save message
+                await chatService.createMessage({
+                    message_id: normalizedMessage.messageId,
+                    chat_id: normalizedMessage.senderId,
+                    text: normalizedMessage.text,
+                    sender: normalizedMessage.sender,
+                    timestamp: normalizedMessage.timestamp,
+                    source: normalizedMessage.platform
+                });
+
+                console.log('Message and chat saved to database');
+            } catch (dbError) {
+                console.error('Error saving to database:', dbError);
+                // Don't fail the webhook if database save fails
+            }
         } else {
             console.log('Webhook received but could not parse as a text message (might be status update or unsupported type).');
             // Still emit raw for debugging if needed, or just ignore

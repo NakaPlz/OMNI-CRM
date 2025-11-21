@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const webhookRoutes = require('./routes/webhooks');
 const messageRoutes = require('./routes/messages');
 const contactRoutes = require('./routes/contacts');
+const chatRoutes = require('./routes/chats');
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use((req, res, next) => {
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/chats', chatRoutes);
 
 // Serve static files from the React client
 app.use(express.static(path.join(__dirname, '../client/dist')));
