@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, MoreHorizontal, Phone, Instagram, MessageSquare, Trash2, Edit } from 'lucide-react';
 
 export default function Contacts() {
+    const navigate = useNavigate();
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -120,6 +122,15 @@ export default function Contacts() {
                                             >
                                                 <Trash2 size={18} />
                                             </button>
+                                            {contact.chat_id && (
+                                                <button
+                                                    onClick={() => navigate('/', { state: { chatId: contact.chat_id } })}
+                                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                                    title="Go to chat"
+                                                >
+                                                    <MessageSquare size={18} />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
