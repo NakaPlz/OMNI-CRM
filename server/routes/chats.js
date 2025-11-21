@@ -24,4 +24,15 @@ router.get('/:chatId/messages', async (req, res) => {
     }
 });
 
+// Delete a chat
+router.delete('/:chatId', async (req, res) => {
+    try {
+        await chatService.deleteChat(req.params.chatId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;
