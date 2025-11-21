@@ -149,10 +149,39 @@ async function createMessage(messageData) {
     }
 }
 
+/**
+ * Delete a chat and its messages
+ */
+async function deleteChat(chatId) {
+    try {
+        // Delete messages first (optional if cascade delete is set up, but good practice)
+        const { error: messagesError } = await supabase
+            .from('messages')
+            .delete()
+            .eq('chat_id', chatId);
+
+        if (messagesError) throw messagesError;
+
+        // Delete the chat
+        const { error: chatError } = await supabase
+            .from('chats')
+            .delete()
+            .eq('chat_id', chatId);
+
+        if (chatError) throw chatError;
+
+        return true;
+    } catch (error) {
+        console.error('Error deleting chat:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllChats,
     getChatById,
     createOrUpdateChat,
     getMessagesByChatId,
-    createMessage
+    createMessage,
+    deleteChat
 };

@@ -175,6 +175,30 @@ export const ChatProvider = ({ children }) => {
         });
     };
 
+    // Function to delete a chat
+    const deleteChat = async (chatId) => {
+        try {
+            const response = await fetch(`/api/chats/${chatId}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                setChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
+                setMessagesByChat(prev => {
+                    const newMessages = { ...prev };
+                    delete newMessages[chatId];
+                    return newMessages;
+                });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error deleting chat:', error);
+            return false;
+        }
+    };
+
     const value = {
         chats,
         setChats,
@@ -182,6 +206,7 @@ export const ChatProvider = ({ children }) => {
         setMessagesByChat,
         updateChatName,
         markChatAsRead,
+        deleteChat,
         loading
     };
 

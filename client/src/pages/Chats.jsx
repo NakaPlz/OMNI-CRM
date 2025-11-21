@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2 } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
 import Avatar from '../components/Avatar';
 
 export default function Chats() {
-    const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead } = useChatContext();
+    const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead, deleteChat } = useChatContext();
     const [selectedChat, setSelectedChat] = useState(null);
     const [message, setMessage] = useState('');
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -152,6 +152,20 @@ export default function Chats() {
                             >
                                 <UserPlus size={18} />
                                 <span>Save Contact</span>
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (window.confirm('Are you sure you want to delete this chat?')) {
+                                        const success = await deleteChat(selectedChat.id);
+                                        if (success) {
+                                            setSelectedChat(null);
+                                        }
+                                    }
+                                }}
+                                className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                                title="Delete Chat"
+                            >
+                                <Trash2 size={20} />
                             </button>
                             <button className="text-slate-400 hover:text-slate-200">
                                 <MoreVertical size={20} />
