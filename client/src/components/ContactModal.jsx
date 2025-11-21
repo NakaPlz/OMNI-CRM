@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
-export default function ContactModal({ isOpen, onClose, chatInfo, existingContact }) {
+export default function ContactModal({ chatId, onClose }) {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -11,28 +11,6 @@ export default function ContactModal({ isOpen, onClose, chatInfo, existingContac
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Load existing contact data if editing
-    useEffect(() => {
-        if (existingContact) {
-            setFormData({
-                name: existingContact.name || '',
-                email: existingContact.email || '',
-                phone: existingContact.phone || '',
-                company: existingContact.company || '',
-                notes: existingContact.notes || ''
-            });
-        } else {
-            // Reset form when opening for new contact
-            setFormData({
-                name: chatInfo?.name || '',
-                email: '',
-                phone: '',
-                company: '',
-                notes: ''
-            });
-        }
-    }, [existingContact, chatInfo, isOpen]);
 
     const handleChange = (e) => {
         setFormData({
@@ -58,8 +36,8 @@ export default function ContactModal({ isOpen, onClose, chatInfo, existingContac
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    source: chatInfo.source,
-                    chatId: chatInfo.id
+                    source: 'instagram',
+                    chatId: chatId
                 })
             });
 
@@ -78,15 +56,13 @@ export default function ContactModal({ isOpen, onClose, chatInfo, existingContac
         }
     };
 
-    if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-md max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center p-6 border-b border-slate-800">
                     <h2 className="text-xl font-bold text-slate-100">
-                        {existingContact ? 'Edit Contact' : 'Save Contact'}
+                        Save Contact
                     </h2>
                     <button
                         onClick={() => onClose(false)}
