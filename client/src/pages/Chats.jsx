@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2 } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { formatMessageTime } from '../utils/dateUtils';
@@ -12,6 +12,7 @@ export default function Chats() {
     const [message, setMessage] = useState('');
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
 
     // Handle navigation from Contacts page
     useEffect(() => {
@@ -19,11 +20,11 @@ export default function Chats() {
             const chatToSelect = chats.find(c => c.id === location.state.chatId);
             if (chatToSelect) {
                 handleChatSelect(chatToSelect);
-                // Clear state to prevent re-selection on re-renders (optional but good practice)
-                window.history.replaceState({}, document.title);
+                // Clear state using navigate to prevent issues
+                navigate(location.pathname, { replace: true, state: {} });
             }
         }
-    }, [location.state, chats]);
+    }, [location.state, chats, navigate, location.pathname]);
 
     const handleContactSaved = async (success, contactData) => {
         setIsContactModalOpen(false);
