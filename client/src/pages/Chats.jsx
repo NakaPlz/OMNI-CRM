@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2 } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
@@ -13,12 +13,22 @@ export default function Chats() {
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const handledNavigation = useRef(null);
 
     // Handle navigation from Contacts page
     useEffect(() => {
-        if (location.state?.chatId && chats.length > 0) {
-            const chatToSelect = chats.find(c => c.id === location.state.chatId);
+        const chatId = location.state?.chatId;
+
+        // Reset handled navigation if we navigated away or state was cleared
+        if (!chatId) {
+            handledNavigation.current = null;
+            return;
+        }
+
+        if (chats.length > 0 && handledNavigation.current !== chatId) {
+            const chatToSelect = chats.find(c => c.id === chatId);
             if (chatToSelect) {
+                handledNavigation.current = chatId; // Mark as handled immediately
                 handleChatSelect(chatToSelect);
                 // Clear state using navigate to prevent issues
                 navigate(location.pathname, { replace: true, state: {} });
