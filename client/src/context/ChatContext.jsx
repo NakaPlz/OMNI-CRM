@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { formatMessageTime, formatChatTime } from '../utils/dateUtils';
-import { useAuth } from './AuthContext';
+import { useAuth } from './UserAuthContext';
 
 const ChatContext = createContext();
 
