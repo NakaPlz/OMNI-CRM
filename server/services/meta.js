@@ -10,9 +10,7 @@ const sendInstagramMessage = async (recipientId, text) => {
 
     const payload = {
         recipient: { id: recipientId },
-        message: { text: text },
-        messaging_type: "MESSAGE_TAG",
-        tag: "HUMAN_AGENT"
+        message: { text: text }
     };
 
     try {
