@@ -20,6 +20,15 @@ router.get('/', requireAuth, async (req, res) => {
 
         if (chatsError) throw chatsError;
 
+        // 2.1 Active Chats (Last 24 hours)
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { count: activeChatsCount, error: activeChatsError } = await supabase
+            .from('chats')
+            .select('*', { count: 'exact', head: true })
+            .gt('updated_at', oneDayAgo);
+
+        if (activeChatsError) throw activeChatsError;
+
         // 3. Total Messages
         const { count: messagesCount, error: messagesError } = await supabase
             .from('messages')
@@ -45,6 +54,7 @@ router.get('/', requireAuth, async (req, res) => {
             stats: {
                 totalContacts: contactsCount || 0,
                 totalChats: chatsCount || 0,
+                activeChats: activeChatsCount || 0,
                 totalMessages: messagesCount || 0,
                 platformDistribution: platformStats
             }
