@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const chatService = require('../services/chatService');
+const { requireAuth } = require('../middleware/auth');
+
+// Apply auth middleware to all routes
+router.use(requireAuth);
 
 // Get all chats
 router.get('/', async (req, res) => {

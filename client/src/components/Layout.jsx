@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MessageSquare, Users, Settings, Menu, X } from 'lucide-react';
+import { MessageSquare, Users, Settings, Menu, X, LayoutDashboard } from 'lucide-react';
 
 export default function Layout({ children }) {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const navItems = [
+        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/', icon: MessageSquare, label: 'Chats' },
         { path: '/contacts', icon: Users, label: 'Contacts' },
         { path: '/settings', icon: Settings, label: 'Settings' },
