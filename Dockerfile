@@ -4,6 +4,13 @@ WORKDIR /app/client
 COPY client/package*.json ./
 RUN npm install
 COPY client/ ./
+
+# Map build args to VITE env vars
+ARG SUPABASE_URL
+ARG SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=$SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+
 RUN npm run build
 
 # Stage 2: Setup the Node.js Backend
