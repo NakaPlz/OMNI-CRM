@@ -20,8 +20,9 @@ const PORT = process.env.PORT || 3000;
 // Setup Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for now
-        methods: ["GET", "POST"]
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -32,7 +33,6 @@ io.on('connection', (socket) => {
     });
 });
 
-app.use(cors());
 app.use(cors());
 app.use(express.json({
     verify: (req, res, buf) => {

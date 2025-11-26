@@ -89,7 +89,10 @@ export const ChatProvider = ({ children }) => {
 
     // Socket.io for real-time updates
     useEffect(() => {
-        const socket = io();
+        const socket = io({
+            transports: ['websocket'],
+            upgrade: false
+        });
 
         socket.on('connect', () => {
             console.log('Connected to socket server');
