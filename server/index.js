@@ -33,7 +33,12 @@ io.on('connection', (socket) => {
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(cors());
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 // Attach io to req to use in routes
 app.use((req, res, next) => {

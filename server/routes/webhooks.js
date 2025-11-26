@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const chatService = require('../services/chatService');
+const verifySignature = require('../middleware/verifySignature');
 
 // In-memory storage for settings (in a real app, use a DB)
 let forwardingConfig = {
@@ -31,7 +32,7 @@ router.get('/', (req, res) => {
 });
 
 // Receive Webhook Events
-router.post('/', async (req, res) => {
+router.post('/', verifySignature, async (req, res) => {
     const body = req.body;
 
     console.log('Received webhook event:', JSON.stringify(body, null, 2));
