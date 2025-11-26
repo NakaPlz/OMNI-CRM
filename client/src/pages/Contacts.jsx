@@ -136,9 +136,9 @@ export default function Contacts() {
     };
 
     return (
-        <div className="p-6 relative">
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
+        <div className="p-4 md:p-6 relative">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
                     <h1 className="text-2xl font-bold text-slate-100">Contacts</h1>
                     {selectedContacts.size > 0 && (
                         <button
@@ -146,18 +146,18 @@ export default function Contacts() {
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
                         >
                             <MessageSquare size={16} />
-                            Send to {selectedContacts.size}
+                            <span className="hidden sm:inline">Send to</span> {selectedContacts.size}
                         </button>
                     )}
                 </div>
-                <div className="relative">
+                <div className="relative w-full md:w-auto">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                     <input
                         type="text"
                         placeholder="Search contacts..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-slate-900 text-slate-200 pl-10 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                        className="w-full md:w-64 bg-slate-900 text-slate-200 pl-10 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
                     />
                 </div>
             </div>
@@ -173,84 +173,86 @@ export default function Contacts() {
                 </div>
             ) : (
                 <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-slate-800/50 text-slate-400 text-sm uppercase">
-                            <tr>
-                                <th className="px-6 py-4 w-12">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedContacts.size === filteredContacts.length && filteredContacts.length > 0}
-                                        onChange={toggleSelectAll}
-                                        className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
-                                    />
-                                </th>
-                                <th className="px-6 py-4 font-medium">Name</th>
-                                <th className="px-6 py-4 font-medium">Email</th>
-                                <th className="px-6 py-4 font-medium">Phone</th>
-                                <th className="px-6 py-4 font-medium">Company</th>
-                                <th className="px-6 py-4 font-medium">Source</th>
-                                <th className="px-6 py-4 font-medium text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800">
-                            {filteredContacts.map((contact) => (
-                                <tr key={contact.id} className={`hover:bg-slate-800/50 transition-colors ${selectedContacts.has(contact.id) ? 'bg-blue-500/5' : ''}`}>
-                                    <td className="px-6 py-4">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left whitespace-nowrap">
+                            <thead className="bg-slate-800/50 text-slate-400 text-sm uppercase">
+                                <tr>
+                                    <th className="px-6 py-4 w-12">
                                         <input
                                             type="checkbox"
-                                            checked={selectedContacts.has(contact.id)}
-                                            onChange={() => toggleSelectContact(contact.id)}
+                                            checked={selectedContacts.size === filteredContacts.length && filteredContacts.length > 0}
+                                            onChange={toggleSelectAll}
                                             className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
                                         />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-300">
-                                                {contact.name.charAt(0).toUpperCase()}
-                                            </div>
-                                            <span className="font-medium text-slate-200">{contact.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-slate-400">{contact.email || '-'}</td>
-                                    <td className="px-6 py-4 text-slate-400">{contact.phone || '-'}</td>
-                                    <td className="px-6 py-4 text-slate-400">{contact.company || '-'}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            {getSourceIcon(contact.source)}
-                                            <span className="capitalize text-slate-300">{contact.source}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => handleDelete(contact.id)}
-                                                className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                                                title="Delete contact"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                            {contact.chat_id && (
-                                                <button
-                                                    onClick={() => navigate('/', { state: { chatId: contact.chat_id } })}
-                                                    className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                                                    title="Go to chat"
-                                                >
-                                                    <MessageSquare size={18} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
+                                    </th>
+                                    <th className="px-6 py-4 font-medium">Name</th>
+                                    <th className="px-6 py-4 font-medium">Email</th>
+                                    <th className="px-6 py-4 font-medium">Phone</th>
+                                    <th className="px-6 py-4 font-medium">Company</th>
+                                    <th className="px-6 py-4 font-medium">Source</th>
+                                    <th className="px-6 py-4 font-medium text-right">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800">
+                                {filteredContacts.map((contact) => (
+                                    <tr key={contact.id} className={`hover:bg-slate-800/50 transition-colors ${selectedContacts.has(contact.id) ? 'bg-blue-500/5' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedContacts.has(contact.id)}
+                                                onChange={() => toggleSelectContact(contact.id)}
+                                                className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-300">
+                                                    {contact.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <span className="font-medium text-slate-200">{contact.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-400">{contact.email || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-400">{contact.phone || '-'}</td>
+                                        <td className="px-6 py-4 text-slate-400">{contact.company || '-'}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                {getSourceIcon(contact.source)}
+                                                <span className="capitalize text-slate-300">{contact.source}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleDelete(contact.id)}
+                                                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                                    title="Delete contact"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                                {contact.chat_id && (
+                                                    <button
+                                                        onClick={() => navigate('/', { state: { chatId: contact.chat_id } })}
+                                                        className="p-2 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                                        title="Go to chat"
+                                                    >
+                                                        <MessageSquare size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
             {/* Bulk Message Modal */}
             {showBulkModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-lg p-6 shadow-xl">
+                    <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-lg p-6 shadow-xl mx-4">
                         <h2 className="text-xl font-bold text-slate-100 mb-4">Send Bulk Message</h2>
                         <p className="text-slate-400 mb-4">
                             Sending to {selectedContacts.size} contacts.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2 } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
@@ -100,9 +100,13 @@ export default function Chats() {
     const currentMessages = selectedChat ? (messagesByChat[selectedChat.id] || []) : [];
 
     return (
-        <div className="flex h-full w-full bg-slate-950">
+        <div className="flex h-full w-full bg-slate-950 relative">
             {/* Chat List */}
-            <div className="w-96 border-r border-slate-800 flex flex-col bg-slate-900/50">
+            <div className={`
+                flex-col bg-slate-900/50 border-r border-slate-800 h-full
+                w-full md:w-96
+                ${selectedChat ? 'hidden md:flex' : 'flex'}
+            `}>
                 <div className="p-4 border-b border-slate-800">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -155,109 +159,123 @@ export default function Chats() {
             </div>
 
             {/* Chat Window */}
-            {selectedChat ? (
-                <div className="flex-1 flex flex-col bg-slate-950">
-                    {/* Header */}
-                    <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                        <div className="flex items-center gap-3">
-                            <Avatar name={selectedChat.name} size="md" />
-                            <div>
-                                <h2 className="font-bold text-slate-100">{selectedChat.name}</h2>
-                                <div className="flex items-center gap-1 text-xs text-slate-400">
-                                    {getSourceIcon(selectedChat.source)}
-                                    <span className="capitalize">{selectedChat.source}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setIsContactModalOpen(true)}
-                                className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                                title="Save Contact"
-                            >
-                                <UserPlus size={18} />
-                                <span>Save Contact</span>
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (window.confirm('Are you sure you want to delete this chat?')) {
-                                        const success = await deleteChat(selectedChat.id);
-                                        if (success) {
-                                            setSelectedChat(null);
-                                        }
-                                    }
-                                }}
-                                className="p-2 text-slate-400 hover:text-red-400 transition-colors"
-                                title="Delete Chat"
-                            >
-                                <Trash2 size={20} />
-                            </button>
-                            <button className="text-slate-400 hover:text-slate-200">
-                                <MoreVertical size={20} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                        {currentMessages.length === 0 ? (
-                            <div className="text-center text-slate-500 mt-10">
-                                <p>No messages yet.</p>
-                            </div>
-                        ) : (
-                            currentMessages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+            <div className={`
+                flex-col bg-slate-950 h-full
+                w-full flex-1
+                ${selectedChat ? 'flex' : 'hidden md:flex'}
+            `}>
+                {selectedChat ? (
+                    <>
+                        {/* Header */}
+                        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                            <div className="flex items-center gap-3">
+                                {/* Back Button for Mobile */}
+                                <button
+                                    onClick={() => setSelectedChat(null)}
+                                    className="md:hidden text-slate-400 hover:text-slate-200 mr-1"
                                 >
-                                    <div
-                                        className={`max-w-[70%] rounded-2xl px-4 py-3 ${msg.sender === 'me'
-                                            ? 'bg-blue-600 text-white rounded-tr-none'
-                                            : 'bg-slate-800 text-slate-200 rounded-tl-none'
-                                            }`}
-                                    >
-                                        <p>{msg.text}</p>
-                                        <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'}`}>
-                                            {msg.time}
-                                        </span>
+                                    <ArrowLeft size={24} />
+                                </button>
+
+                                <Avatar name={selectedChat.name} size="md" />
+                                <div>
+                                    <h2 className="font-bold text-slate-100">{selectedChat.name}</h2>
+                                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                                        {getSourceIcon(selectedChat.source)}
+                                        <span className="capitalize">{selectedChat.source}</span>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setIsContactModalOpen(true)}
+                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    title="Save Contact"
+                                >
+                                    <UserPlus size={18} />
+                                    <span className="hidden sm:inline">Save Contact</span>
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (window.confirm('Are you sure you want to delete this chat?')) {
+                                            const success = await deleteChat(selectedChat.id);
+                                            if (success) {
+                                                setSelectedChat(null);
+                                            }
+                                        }
+                                    }}
+                                    className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                                    title="Delete Chat"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                                <button className="text-slate-400 hover:text-slate-200">
+                                    <MoreVertical size={20} />
+                                </button>
+                            </div>
+                        </div>
 
-                    {/* Input */}
-                    <div className="p-4 border-t border-slate-800 bg-slate-900/50">
-                        <div className="flex items-center gap-2">
-                            <button className="p-2 text-slate-400 hover:text-blue-400 transition-colors">
-                                <Paperclip size={20} />
-                            </button>
-                            <input
-                                type="text"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                placeholder="Type a message..."
-                                className="flex-1 bg-slate-800 text-slate-200 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
-                            />
-                            <button
-                                onClick={handleSendMessage}
-                                className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
-                            >
-                                <Send size={20} />
-                            </button>
+                        {/* Messages */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                            {currentMessages.length === 0 ? (
+                                <div className="text-center text-slate-500 mt-10">
+                                    <p>No messages yet.</p>
+                                </div>
+                            ) : (
+                                currentMessages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div
+                                            className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${msg.sender === 'me'
+                                                ? 'bg-blue-600 text-white rounded-tr-none'
+                                                : 'bg-slate-800 text-slate-200 rounded-tl-none'
+                                                }`}
+                                        >
+                                            <p>{msg.text}</p>
+                                            <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'}`}>
+                                                {msg.time}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Input */}
+                        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 text-slate-400 hover:text-blue-400 transition-colors hidden sm:block">
+                                    <Paperclip size={20} />
+                                </button>
+                                <input
+                                    type="text"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    placeholder="Type a message..."
+                                    className="flex-1 bg-slate-800 text-slate-200 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                                />
+                                <button
+                                    onClick={handleSendMessage}
+                                    className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                                >
+                                    <Send size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="flex-1 flex items-center justify-center bg-slate-950">
+                        <div className="text-center text-slate-500">
+                            <MessageCircle size={64} className="mx-auto mb-4 opacity-50" />
+                            <p className="text-lg font-medium">Select a chat to start messaging</p>
+                            <p className="text-sm mt-2">Choose a conversation from the list</p>
                         </div>
                     </div>
-                </div>
-            ) : (
-                <div className="flex-1 flex items-center justify-center bg-slate-950">
-                    <div className="text-center text-slate-500">
-                        <MessageCircle size={64} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-lg font-medium">Select a chat to start messaging</p>
-                        <p className="text-sm mt-2">Choose a conversation from the list</p>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Contact Modal */}
             {isContactModalOpen && selectedChat && (
