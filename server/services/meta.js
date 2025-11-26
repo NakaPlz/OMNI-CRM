@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const sendInstagramMessage = async (recipientId, text) => {
     // User explicitly requested this URL and Token
-    const token = process.env.META_ACCESS_TOKEN || 'IGAAVFwYY1nqhBZAFFvaGdUU0lFd3RwaUkwVjRWb2hFT0ZAkMUpWbDZA2TjVMU2syaG9udU4zR1MzYkhmS3V2MmNUY25MWnBMb040YWwySW5EUlVYaTZAPTGxpc202cTFScGViNm1vNlZA2cmh3Sk1VOFFRejdfVldZARGpHQlNSRnBEWQZDZD';
+    const token = process.env.META_ACCESS_TOKEN || 'IGAAVFwYY1nqhBZAFIybExPYU9MMkZAvcHBmWE9LSGJBeUtBbWd1ZAzJIVFEybThnWTY0T080OThrV3Y0U2QzVWE4S2xIczdnY0lPWVFjQmpjNnh3R1VmM0M0dURING50ZAF9nQkJGSWl2OEFfNGlMcXNDXzRuaXhqLUhFcWFLOUlCawZDZD';
     const accountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
 
     // Using graph.instagram.com as explicitly requested by user
