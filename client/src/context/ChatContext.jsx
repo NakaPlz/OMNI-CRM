@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { formatMessageTime, formatChatTime } from '../utils/dateUtils';
+import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
 
@@ -13,16 +14,25 @@ export const useChatContext = () => {
 };
 
 export const ChatProvider = ({ children }) => {
+    const { user, session } = useAuth();
     const [chats, setChats] = useState([]);
     const [messagesByChat, setMessagesByChat] = useState({});
     const [loading, setLoading] = useState(true);
 
     // Load chats and messages from API on mount
     useEffect(() => {
+        if (!user || !session) return;
+
         const loadChatHistory = async () => {
             try {
+                const token = session.access_token;
+                const headers = {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                };
+
                 // Fetch all chats
-                const chatsResponse = await fetch('/api/chats');
+                const chatsResponse = await fetch('/api/chats', { headers });
                 const chatsData = await chatsResponse.json();
 
                 if (chatsData.success && chatsData.chats.length > 0) {
@@ -42,7 +52,7 @@ export const ChatProvider = ({ children }) => {
 
                     // Fetch messages for each chat
                     const messagesPromises = chatsData.chats.map(async (chat) => {
-                        const messagesResponse = await fetch(`/api/chats/${chat.chat_id}/messages`);
+                        const messagesResponse = await fetch(`/api/chats/${chat.chat_id}/messages`, { headers });
                         const messagesData = await messagesResponse.json();
 
                         if (messagesData.success) {
@@ -75,7 +85,7 @@ export const ChatProvider = ({ children }) => {
         };
 
         loadChatHistory();
-    }, []);
+    }, [user, session]);
 
     // Socket.io for real-time updates
     useEffect(() => {
@@ -177,9 +187,13 @@ export const ChatProvider = ({ children }) => {
 
     // Function to delete a chat
     const deleteChat = async (chatId) => {
+        if (!session) return false;
         try {
             const response = await fetch(`/api/chats/${chatId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
             });
             const data = await response.json();
 
