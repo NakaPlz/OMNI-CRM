@@ -96,7 +96,18 @@ export default function Contacts() {
             });
             const data = await response.json();
             if (data.success) {
-                alert(`Messages sent! Successful: ${data.results.successful.length}, Failed: ${data.results.failed.length}`);
+                const failedCount = data.results.failed.length;
+                const successCount = data.results.successful.length;
+
+                let message = `Messages sent! Successful: ${successCount}`;
+                if (failedCount > 0) {
+                    message += `\nFailed: ${failedCount}`;
+                    // Show first few errors
+                    const errors = data.results.failed.map(f => f.error).slice(0, 3).join(', ');
+                    message += `\nReasons: ${errors}${data.results.failed.length > 3 ? '...' : ''}`;
+                }
+
+                alert(message);
                 setShowBulkModal(false);
                 setBulkMessage('');
                 setSelectedContacts(new Set());
