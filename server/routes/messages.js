@@ -48,8 +48,9 @@ router.post('/bulk', async (req, res) => {
                 results.failed.push({ id: recipient.id, error: 'Unsupported platform' });
             }
         } catch (error) {
-            console.error(`Failed to send to ${recipient.id}:`, error.message);
-            results.failed.push({ id: recipient.id, error: error.message });
+            const errorMessage = error.response?.data?.error?.message || error.message;
+            console.error(`Failed to send to ${recipient.id}:`, errorMessage);
+            results.failed.push({ id: recipient.id, error: errorMessage });
         }
     }
 
