@@ -23,4 +23,37 @@ router.post('/send', async (req, res) => {
     }
 });
 
+router.post('/bulk', async (req, res) => {
+    const { recipients, text } = req.body;
+
+    if (!recipients || !Array.isArray(recipients) || !text) {
+        return res.status(400).json({ error: 'Invalid request body. Expected recipients array and text.' });
+    }
+
+    const results = {
+        successful: [],
+        failed: []
+    };
+
+    // Process in parallel but limit concurrency if needed (for now, simple Promise.all)
+    // Or sequential to avoid rate limits? Instagram has rate limits.
+    // Let's do sequential for safety for now.
+
+    for (const recipient of recipients) {
+        try {
+            if (recipient.platform === 'instagram') {
+                await sendInstagramMessage(recipient.id, text);
+                results.successful.push(recipient.id);
+            } else {
+                results.failed.push({ id: recipient.id, error: 'Unsupported platform' });
+            }
+        } catch (error) {
+            console.error(`Failed to send to ${recipient.id}:`, error.message);
+            results.failed.push({ id: recipient.id, error: error.message });
+        }
+    }
+
+    res.json({ success: true, results });
+});
+
 module.exports = router;

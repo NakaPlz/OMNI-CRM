@@ -8,6 +8,11 @@ export default function Contacts() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const [selectedContacts, setSelectedContacts] = useState(new Set());
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkMessage, setBulkMessage] = useState('');
+    const [sending, setSending] = useState(false);
+
     useEffect(() => {
         fetchContacts();
     }, []);
@@ -36,9 +41,73 @@ export default function Contacts() {
             const data = await response.json();
             if (data.success) {
                 setContacts(contacts.filter(c => c.id !== id));
+                setSelectedContacts(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(id);
+                    return newSet;
+                });
             }
         } catch (error) {
             console.error('Error deleting contact:', error);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedContacts.size === filteredContacts.length) {
+            setSelectedContacts(new Set());
+        } else {
+            setSelectedContacts(new Set(filteredContacts.map(c => c.id)));
+        }
+    };
+
+    const toggleSelectContact = (id) => {
+        setSelectedContacts(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    const handleBulkSend = async () => {
+        if (!bulkMessage.trim()) return;
+        setSending(true);
+
+        const recipients = contacts
+            .filter(c => selectedContacts.has(c.id) && c.chat_id)
+            .map(c => ({
+                id: c.chat_id, // Assuming chat_id is the platform ID (e.g. Instagram ID)
+                platform: c.source
+            }));
+
+        try {
+            const response = await fetch('/api/messages/bulk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    recipients,
+                    text: bulkMessage
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert(`Messages sent! Successful: ${data.results.successful.length}, Failed: ${data.results.failed.length}`);
+                setShowBulkModal(false);
+                setBulkMessage('');
+                setSelectedContacts(new Set());
+            } else {
+                alert('Failed to send messages: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error sending bulk messages:', error);
+            alert('Error sending messages');
+        } finally {
+            setSending(false);
         }
     };
 
@@ -56,9 +125,20 @@ export default function Contacts() {
     };
 
     return (
-        <div className="p-6">
+        <div className="p-6 relative">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-slate-100">Contacts</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-slate-100">Contacts</h1>
+                    {selectedContacts.size > 0 && (
+                        <button
+                            onClick={() => setShowBulkModal(true)}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        >
+                            <MessageSquare size={16} />
+                            Send to {selectedContacts.size}
+                        </button>
+                    )}
+                </div>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                     <input
@@ -85,6 +165,14 @@ export default function Contacts() {
                     <table className="w-full text-left">
                         <thead className="bg-slate-800/50 text-slate-400 text-sm uppercase">
                             <tr>
+                                <th className="px-6 py-4 w-12">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedContacts.size === filteredContacts.length && filteredContacts.length > 0}
+                                        onChange={toggleSelectAll}
+                                        className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 font-medium">Name</th>
                                 <th className="px-6 py-4 font-medium">Email</th>
                                 <th className="px-6 py-4 font-medium">Phone</th>
@@ -95,7 +183,15 @@ export default function Contacts() {
                         </thead>
                         <tbody className="divide-y divide-slate-800">
                             {filteredContacts.map((contact) => (
-                                <tr key={contact.id} className="hover:bg-slate-800/50 transition-colors">
+                                <tr key={contact.id} className={`hover:bg-slate-800/50 transition-colors ${selectedContacts.has(contact.id) ? 'bg-blue-500/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedContacts.has(contact.id)}
+                                            onChange={() => toggleSelectContact(contact.id)}
+                                            className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold text-slate-300">
@@ -137,6 +233,40 @@ export default function Contacts() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Bulk Message Modal */}
+            {showBulkModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-lg p-6 shadow-xl">
+                        <h2 className="text-xl font-bold text-slate-100 mb-4">Send Bulk Message</h2>
+                        <p className="text-slate-400 mb-4">
+                            Sending to {selectedContacts.size} contacts.
+                        </p>
+                        <textarea
+                            value={bulkMessage}
+                            onChange={(e) => setBulkMessage(e.target.value)}
+                            placeholder="Type your message here..."
+                            className="w-full h-32 bg-slate-950 text-slate-200 p-4 rounded-lg border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-6"
+                        />
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowBulkModal(false)}
+                                className="px-4 py-2 text-slate-400 hover:text-slate-200 transition-colors"
+                                disabled={sending}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleBulkSend}
+                                disabled={sending || !bulkMessage.trim()}
+                                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {sending ? 'Sending...' : 'Send Message'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
