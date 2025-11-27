@@ -17,8 +17,48 @@ router.post('/send', async (req, res) => {
             return res.status(400).json({ error: 'Unsupported platform' });
         }
 
+        // Create message object
+        const newMessage = {
+            message_id: result.message_id || `msg_${Date.now()}`, // Instagram might return an ID
+            chat_id: recipientId,
+            text: text,
+            sender: 'me',
+            timestamp: Math.floor(Date.now() / 1000),
+            source: platform
+        };
+
+        // Save to database (using the service required from webhooks.js, need to import it here)
+        // We need to require chatService at the top
+        const chatService = require('../services/chatService');
+
+        await chatService.createMessage(newMessage);
+
+        // Update chat last message
+        await chatService.createOrUpdateChat({
+            chat_id: recipientId,
+            last_message: text,
+            last_message_timestamp: newMessage.timestamp,
+            source: platform
+            // We don't update name/avatar here as we assume it exists
+        });
+
+        // Emit to socket
+        const socketMessage = {
+            platform: platform,
+            senderId: recipientId, // The chat ID
+            text: text,
+            timestamp: newMessage.timestamp,
+            messageId: newMessage.message_id,
+            sender: 'me'
+        };
+
+        if (req.io) {
+            req.io.emit('new_message', socketMessage);
+        }
+
         res.json({ success: true, data: result });
     } catch (error) {
+        console.error('Error sending message:', error);
         res.status(500).json({ error: 'Failed to send message', details: error.message });
     }
 });
