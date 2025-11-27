@@ -5,13 +5,13 @@ const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 
+dotenv.config();
+
 // Routes
 const webhookRoutes = require('./routes/webhooks');
 const messageRoutes = require('./routes/messages');
 const contactRoutes = require('./routes/contacts');
 const chatRoutes = require('./routes/chats');
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
