@@ -103,7 +103,7 @@ export default function Settings() {
                   placeholder="Tag Name (e.g., VIP, Lead)"
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-4 py-2.5 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <div className="flex gap-2 flex-wrap">
