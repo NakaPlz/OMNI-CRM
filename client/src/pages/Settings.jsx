@@ -94,37 +94,42 @@ export default function Settings() {
           </div>
 
           {/* Create Tag Form */}
-          <form onSubmit={handleCreateTag} className="mb-8 bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <h3 className="text-sm font-medium text-slate-300 mb-3">Create New Tag</h3>
-            <div className="flex gap-4 items-start flex-col md:flex-row">
-              <div className="flex-1 w-full">
-                <input
-                  type="text"
-                  placeholder="Tag Name (e.g., VIP, Lead)"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2.5 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+          <form onSubmit={handleCreateTag} className="mb-8 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">Tag Name</label>
+              <input
+                type="text"
+                placeholder="e.g., VIP Customer"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-6 justify-between items-end">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-400">Tag Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  {colors.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setNewTagColor(color)}
+                      className={`w-10 h-10 rounded-full ${color} flex items-center justify-center transition-transform ${newTagColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110' : 'hover:scale-110'}`}
+                    >
+                      {newTagColor === color && <Check size={18} className="text-white drop-shadow-md" />}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                {colors.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setNewTagColor(color)}
-                    className={`w-8 h-8 rounded-full ${color} flex items-center justify-center transition-transform ${newTagColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110' : 'hover:scale-110'}`}
-                  >
-                    {newTagColor === color && <Check size={14} className="text-white drop-shadow-md" />}
-                  </button>
-                ))}
-              </div>
+
               <button
                 type="submit"
                 disabled={!newTagName.trim()}
-                className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium shadow-lg shadow-indigo-500/20"
               >
-                <Plus size={18} />
-                <span>Add</span>
+                <Plus size={20} />
+                <span>Create Tag</span>
               </button>
             </div>
           </form>
