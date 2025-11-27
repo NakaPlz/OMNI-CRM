@@ -7,7 +7,17 @@ async function getAllChats() {
     try {
         const { data, error } = await supabase
             .from('chats')
-            .select('*')
+            .select(`
+                *,
+                chat_tags (
+                    tag_id,
+                    tags (
+                        id,
+                        name,
+                        color
+                    )
+                )
+            `)
             .order('last_message_timestamp', { ascending: false });
 
         if (error) throw error;
@@ -177,11 +187,52 @@ async function deleteChat(chatId) {
     }
 }
 
+/**
+ * Add a tag to a chat
+ */
+async function addTagToChat(chatId, tagId) {
+    try {
+        const { error } = await supabase
+            .from('chat_tags')
+            .insert([{ chat_id: chatId, tag_id: tagId }]);
+
+        if (error) {
+            // Ignore duplicate key error (tag already assigned)
+            if (error.code === '23505') return true;
+            throw error;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error adding tag to chat:', error);
+        throw error;
+    }
+}
+
+/**
+ * Remove a tag from a chat
+ */
+async function removeTagFromChat(chatId, tagId) {
+    try {
+        const { error } = await supabase
+            .from('chat_tags')
+            .delete()
+            .match({ chat_id: chatId, tag_id: tagId });
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error removing tag from chat:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     getAllChats,
     getChatById,
     createOrUpdateChat,
     getMessagesByChatId,
     createMessage,
-    deleteChat
+    deleteChat,
+    addTagToChat,
+    removeTagFromChat
 };

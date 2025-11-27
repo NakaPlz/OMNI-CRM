@@ -39,4 +39,30 @@ router.delete('/:chatId', async (req, res) => {
     }
 });
 
+// Add tag to chat
+router.post('/:chatId/tags', async (req, res) => {
+    try {
+        const { tagId } = req.body;
+        if (!tagId) {
+            return res.status(400).json({ success: false, error: 'Tag ID is required' });
+        }
+        await chatService.addTagToChat(req.params.chatId, tagId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error adding tag:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Remove tag from chat
+router.delete('/:chatId/tags/:tagId', async (req, res) => {
+    try {
+        await chatService.removeTagFromChat(req.params.chatId, req.params.tagId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error removing tag:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 module.exports = router;

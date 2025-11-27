@@ -1,19 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft, Tag, Plus, X } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
+import { useAuth } from '../context/UserAuthContext';
 import { formatMessageTime } from '../utils/dateUtils';
 import ContactModal from '../components/ContactModal';
 import Avatar from '../components/Avatar';
 
 export default function Chats() {
-    const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead, deleteChat } = useChatContext();
+    const { chats, messagesByChat, setMessagesByChat, updateChatName, markChatAsRead, deleteChat, updateChatTags } = useChatContext();
+    const { session } = useAuth();
     const [selectedChat, setSelectedChat] = useState(null);
     const [message, setMessage] = useState('');
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+    // Tag state
+    const [availableTags, setAvailableTags] = useState([]);
+    const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+
     const location = useLocation();
     const navigate = useNavigate();
     const handledNavigation = useRef(null);
+
+    // Fetch available tags
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await fetch('/api/tags', {
+                    headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setAvailableTags(data.tags);
+                }
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        };
+
+        if (session) {
+            fetchTags();
+        }
+    }, [session]);
 
     // Handle navigation from Contacts page
     useEffect(() => {
@@ -51,6 +79,49 @@ export default function Chats() {
         setSelectedChat(chat);
         // Mark chat as read when selected
         markChatAsRead(chat.id);
+        setIsTagDropdownOpen(false);
+    };
+
+    const handleAddTag = async (tag) => {
+        if (!selectedChat) return;
+
+        // Optimistic update
+        const newTags = [...(selectedChat.tags || []), tag];
+        updateChatTags(selectedChat.id, newTags);
+        setSelectedChat(prev => ({ ...prev, tags: newTags }));
+        setIsTagDropdownOpen(false);
+
+        try {
+            await fetch(`/api/chats/${selectedChat.id}/tags`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ tagId: tag.id })
+            });
+        } catch (error) {
+            console.error('Error adding tag:', error);
+            // Revert on error (optional, but good practice)
+        }
+    };
+
+    const handleRemoveTag = async (tagId) => {
+        if (!selectedChat) return;
+
+        // Optimistic update
+        const newTags = (selectedChat.tags || []).filter(t => t.id !== tagId);
+        updateChatTags(selectedChat.id, newTags);
+        setSelectedChat(prev => ({ ...prev, tags: newTags }));
+
+        try {
+            await fetch(`/api/chats/${selectedChat.id}/tags/${tagId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${session?.access_token}` }
+            });
+        } catch (error) {
+            console.error('Error removing tag:', error);
+        }
     };
 
     const getSourceIcon = (source) => {
@@ -146,9 +217,20 @@ export default function Chats() {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="mt-1 flex items-center gap-1">
-                                            {getSourceIcon(chat.source)}
-                                            <span className="text-xs text-slate-500 capitalize">{chat.source}</span>
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <div className="flex items-center gap-1">
+                                                {getSourceIcon(chat.source)}
+                                                <span className="text-xs text-slate-500 capitalize">{chat.source}</span>
+                                            </div>
+                                            {/* Tags in List */}
+                                            <div className="flex gap-1 overflow-hidden">
+                                                {chat.tags && chat.tags.slice(0, 2).map(tag => (
+                                                    <div key={tag.id} className={`w-2 h-2 rounded-full ${tag.color}`} title={tag.name} />
+                                                ))}
+                                                {chat.tags && chat.tags.length > 2 && (
+                                                    <span className="text-[10px] text-slate-500">+{chat.tags.length - 2}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -180,13 +262,72 @@ export default function Chats() {
                                 <Avatar name={selectedChat.name} size="md" />
                                 <div>
                                     <h2 className="font-bold text-slate-100">{selectedChat.name}</h2>
-                                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                                        {getSourceIcon(selectedChat.source)}
-                                        <span className="capitalize">{selectedChat.source}</span>
+                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                        <div className="flex items-center gap-1">
+                                            {getSourceIcon(selectedChat.source)}
+                                            <span className="capitalize">{selectedChat.source}</span>
+                                        </div>
+                                        {/* Tags in Header */}
+                                        {selectedChat.tags && selectedChat.tags.length > 0 && (
+                                            <div className="flex gap-1 ml-2">
+                                                {selectedChat.tags.map(tag => (
+                                                    <span key={tag.id} className={`px-1.5 py-0.5 rounded text-[10px] font-medium text-white ${tag.color} flex items-center gap-1`}>
+                                                        {tag.name}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRemoveTag(tag.id);
+                                                            }}
+                                                            className="hover:text-slate-200"
+                                                        >
+                                                            <X size={10} />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
+                                {/* Add Tag Button */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
+                                        className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
+                                        title="Add Tag"
+                                    >
+                                        <Tag size={20} />
+                                    </button>
+
+                                    {isTagDropdownOpen && (
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 p-2">
+                                            <h4 className="text-xs font-medium text-slate-400 mb-2 px-2">Add Tag</h4>
+                                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                                                {availableTags.length === 0 ? (
+                                                    <p className="text-xs text-slate-500 px-2 py-1">No tags available. Create one in Settings.</p>
+                                                ) : (
+                                                    availableTags.map(tag => {
+                                                        const isAssigned = selectedChat.tags?.some(t => t.id === tag.id);
+                                                        if (isAssigned) return null;
+
+                                                        return (
+                                                            <button
+                                                                key={tag.id}
+                                                                onClick={() => handleAddTag(tag)}
+                                                                className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                                                            >
+                                                                <div className={`w-2 h-2 rounded-full ${tag.color}`} />
+                                                                {tag.name}
+                                                            </button>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <button
                                     onClick={() => setIsContactModalOpen(true)}
                                     className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -208,9 +349,6 @@ export default function Chats() {
                                     title="Delete Chat"
                                 >
                                     <Trash2 size={20} />
-                                </button>
-                                <button className="text-slate-400 hover:text-slate-200">
-                                    <MoreVertical size={20} />
                                 </button>
                             </div>
                         </div>

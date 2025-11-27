@@ -45,7 +45,8 @@ export const ChatProvider = ({ children }) => {
                         time: formatChatTime(chat.last_message_timestamp),
                         source: chat.source,
                         unread: 0,
-                        avatar: chat.avatar
+                        avatar: chat.avatar,
+                        tags: chat.chat_tags ? chat.chat_tags.map(ct => ct.tags) : []
                     }));
 
                     setChats(transformedChats);
@@ -223,7 +224,9 @@ export const ChatProvider = ({ children }) => {
         setMessagesByChat,
         updateChatName,
         markChatAsRead,
+        markChatAsRead,
         deleteChat,
+        updateChatTags,
         loading
     };
 

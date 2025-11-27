@@ -51,6 +51,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/tags', require('./routes/tags'));
 app.use('/api/stats', require('./routes/stats'));
 
 // Serve static files from the React client
