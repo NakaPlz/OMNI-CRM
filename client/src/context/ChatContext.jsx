@@ -217,13 +217,23 @@ export const ChatProvider = ({ children }) => {
         }
     };
 
+    // Function to update chat tags locally
+    const updateChatTags = (chatId, newTags) => {
+        setChats(prevChats => {
+            return prevChats.map(chat =>
+                chat.id === chatId
+                    ? { ...chat, tags: newTags }
+                    : chat
+            );
+        });
+    };
+
     const value = {
         chats,
         setChats,
         messagesByChat,
         setMessagesByChat,
         updateChatName,
-        markChatAsRead,
         markChatAsRead,
         deleteChat,
         updateChatTags,
