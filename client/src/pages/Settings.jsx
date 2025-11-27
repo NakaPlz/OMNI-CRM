@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Webhook, Key, Smartphone, Tag, Plus, Trash2 } from 'lucide-react';
+import { Save, Webhook, Key, Smartphone, Tag, Plus, Trash2, Check } from 'lucide-react';
 import { useAuth } from '../context/UserAuthContext';
 
 export default function Settings() {
