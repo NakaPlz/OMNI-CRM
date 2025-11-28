@@ -372,7 +372,7 @@ export default function Chats() {
                                                 }`}
                                         >
                                             {msg.type === 'audio' ? (
-                                                <audio controls className="w-full max-w-[240px] mt-1">
+                                                <audio controls className="w-full min-w-[250px] h-10 mt-2 rounded-lg bg-slate-100/10">
                                                     <source src={msg.media_url} type="audio/mp4" />
                                                     <source src={msg.media_url} type="audio/mpeg" />
                                                     <source src={msg.media_url} type="audio/ogg" />
