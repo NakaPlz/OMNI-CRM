@@ -62,7 +62,9 @@ export const ChatProvider = ({ children }) => {
                                 text: msg.text,
                                 sender: msg.sender,
                                 timestamp: msg.timestamp,
-                                time: formatMessageTime(msg.timestamp)
+                                time: formatMessageTime(msg.timestamp),
+                                type: msg.type,
+                                media_url: msg.media_url
                             }));
 
                             return { chatId: chat.chat_id, messages: transformedMessages };
@@ -108,7 +110,9 @@ export const ChatProvider = ({ children }) => {
                 text: data.text,
                 sender: data.sender || 'user',
                 timestamp: data.timestamp,
-                time: formatMessageTime(data.timestamp)
+                time: formatMessageTime(data.timestamp),
+                type: data.type,
+                media_url: data.media_url
             };
 
             setChats(prevChats => {
