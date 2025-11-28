@@ -70,7 +70,7 @@ export default function Layout({ children }) {
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)} // Close menu on navigation
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
                                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
                                     }`}
                             >

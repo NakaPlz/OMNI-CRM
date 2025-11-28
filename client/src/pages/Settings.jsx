@@ -256,8 +256,8 @@ export default function Settings() {
         {/* Tag Management */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-none transition-colors duration-300">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-indigo-500/10 rounded-lg">
-              <Tag className="text-indigo-500" size={24} />
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Tag className="text-primary" size={24} />
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Tag Management</h2>
@@ -298,7 +298,7 @@ export default function Settings() {
               <button
                 type="submit"
                 disabled={!newTagName.trim()}
-                className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium shadow-lg shadow-indigo-500/20"
+                className="w-full md:w-auto bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium shadow-lg shadow-primary/20"
               >
                 <Plus size={20} />
                 <span>Create Tag</span>
