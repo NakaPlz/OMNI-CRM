@@ -371,7 +371,16 @@ export default function Chats() {
                                                 : 'bg-slate-800 text-slate-200 rounded-tl-none'
                                                 }`}
                                         >
-                                            <p>{msg.text}</p>
+                                            {msg.type === 'audio' ? (
+                                                <audio controls className="w-full max-w-[240px] mt-1">
+                                                    <source src={msg.media_url} type="audio/mp4" />
+                                                    <source src={msg.media_url} type="audio/mpeg" />
+                                                    <source src={msg.media_url} type="audio/ogg" />
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            ) : (
+                                                <p>{msg.text}</p>
+                                            )}
                                             <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'}`}>
                                                 {msg.time}
                                             </span>

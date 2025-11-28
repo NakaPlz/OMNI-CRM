@@ -57,20 +57,38 @@ router.post('/', verifySignature, async (req, res) => {
         // Handle Instagram Payload
         if (body.object === 'instagram' && body.entry && body.entry[0].messaging) {
             const messagingEvent = body.entry[0].messaging[0];
-            if (messagingEvent.message && messagingEvent.message.text) {
+            if (messagingEvent.message) {
                 // Check if the message is from us (echo)
                 const instagramAccountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841477975633269';
                 const isFromMe = messagingEvent.sender.id === instagramAccountId;
 
-                normalizedMessage = {
-                    platform: 'instagram',
-                    // If it's from us, the "chat" is with the recipient. If from user, "chat" is with sender.
-                    senderId: isFromMe ? messagingEvent.recipient.id : messagingEvent.sender.id,
-                    text: messagingEvent.message.text,
-                    timestamp: Math.floor(messagingEvent.timestamp / 1000), // Convert from ms to seconds
-                    messageId: messagingEvent.message.mid,
-                    sender: isFromMe ? 'me' : 'user'
-                };
+                let messageType = 'text';
+                let messageText = messagingEvent.message.text || '';
+                let mediaUrl = null;
+
+                // Check for attachments (audio, image, etc.)
+                if (messagingEvent.message.attachments && messagingEvent.message.attachments.length > 0) {
+                    const attachment = messagingEvent.message.attachments[0];
+                    if (attachment.type === 'audio') {
+                        messageType = 'audio';
+                        mediaUrl = attachment.payload.url;
+                        messageText = 'Audio Message';
+                    }
+                }
+
+                if (messageText || mediaUrl) {
+                    normalizedMessage = {
+                        platform: 'instagram',
+                        // If it's from us, the "chat" is with the recipient. If from user, "chat" is with sender.
+                        senderId: isFromMe ? messagingEvent.recipient.id : messagingEvent.sender.id,
+                        text: messageText,
+                        timestamp: Math.floor(messagingEvent.timestamp / 1000), // Convert from ms to seconds
+                        messageId: messagingEvent.message.mid,
+                        sender: isFromMe ? 'me' : 'user',
+                        type: messageType,
+                        media_url: mediaUrl
+                    };
+                }
             }
         }
 
@@ -79,14 +97,32 @@ router.post('/', verifySignature, async (req, res) => {
             const change = body.entry[0].changes[0].value;
             if (change.messages && change.messages[0]) {
                 const msg = change.messages[0];
+
+                let messageType = 'text';
+                let messageText = '';
+                let mediaUrl = null;
+
                 if (msg.type === 'text') {
+                    messageText = msg.text.body;
+                } else if (msg.type === 'audio' || msg.type === 'voice') {
+                    messageType = 'audio';
+                    messageText = 'Audio Message';
+                    // WhatsApp provides an ID, we would need to fetch the media URL. 
+                    // For now, we'll store the ID as the URL or handle it later.
+                    // Ideally, we fetch it from Meta API.
+                    mediaUrl = msg.audio ? msg.audio.id : (msg.voice ? msg.voice.id : null);
+                }
+
+                if (messageText || mediaUrl) {
                     normalizedMessage = {
                         platform: 'whatsapp',
                         senderId: msg.from, // This is the Phone Number
-                        text: msg.text.body,
+                        text: messageText,
                         timestamp: msg.timestamp,
                         messageId: msg.id,
-                        senderName: change.contacts ? change.contacts[0].profile.name : msg.from
+                        senderName: change.contacts ? change.contacts[0].profile.name : msg.from,
+                        type: messageType,
+                        media_url: mediaUrl
                     };
                 }
             }
@@ -115,7 +151,9 @@ router.post('/', verifySignature, async (req, res) => {
                     text: normalizedMessage.text,
                     sender: normalizedMessage.sender,
                     timestamp: normalizedMessage.timestamp,
-                    source: normalizedMessage.platform
+                    source: normalizedMessage.platform,
+                    type: normalizedMessage.type,
+                    media_url: normalizedMessage.media_url
                 });
 
                 console.log('Message and chat saved to database');

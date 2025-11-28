@@ -122,7 +122,7 @@ async function getMessagesByChatId(chatId) {
  */
 async function createMessage(messageData) {
     try {
-        const { message_id, chat_id, text, sender, timestamp, source } = messageData;
+        const { message_id, chat_id, text, sender, timestamp, source, type, media_url } = messageData;
 
         // Check if message already exists (prevent duplicates)
         if (message_id) {
@@ -146,7 +146,9 @@ async function createMessage(messageData) {
                 text,
                 sender,
                 timestamp,
-                source
+                source,
+                type: messageData.type || 'text',
+                media_url: messageData.media_url || null
             }])
             .select()
             .single();
