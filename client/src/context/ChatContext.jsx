@@ -120,6 +120,7 @@ export const ChatProvider = ({ children }) => {
 
                 if (existingChatIndex !== -1) {
                     // Update existing chat
+                    const updatedChats = [...prevChats];
                     updatedChats.splice(existingChatIndex, 1);
                     const chat = prevChats[existingChatIndex];
 
