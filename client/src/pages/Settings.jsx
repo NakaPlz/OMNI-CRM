@@ -4,7 +4,7 @@ import { useAuth } from '../context/UserAuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Settings() {
-  const { session, updatePassword } = useAuth();
+  const { session, updatePassword, signIn } = useAuth();
   const { theme, toggleTheme, accentColor, setAccentColor } = useTheme();
   const [tags, setTags] = useState([]);
   const [newTagName, setNewTagName] = useState('');
@@ -13,6 +13,7 @@ export default function Settings() {
 
   // Password State
   const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -99,8 +100,13 @@ export default function Settings() {
     e.preventDefault();
     setPasswordStatus({ type: '', message: '' });
 
+    if (!passwordForm.currentPassword) {
+      setPasswordStatus({ type: 'error', message: 'Current password is required' });
+      return;
+    }
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus({ type: 'error', message: 'Passwords do not match' });
+      setPasswordStatus({ type: 'error', message: 'New passwords do not match' });
       return;
     }
 
@@ -111,43 +117,53 @@ export default function Settings() {
 
     setUpdatingPassword(true);
     try {
+      // Verify current password by signing in
+      await signIn(session.user.email, passwordForm.currentPassword);
+
+      // If successful, update password
       await updatePassword(passwordForm.newPassword);
+
       setPasswordStatus({ type: 'success', message: 'Password updated successfully' });
-      setPasswordForm({ newPassword: '', confirmPassword: '' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      setPasswordStatus({ type: 'error', message: error.message });
+      console.error('Error updating password:', error);
+      if (error.message && error.message.includes('Invalid login credentials')) {
+        setPasswordStatus({ type: 'error', message: 'Incorrect current password' });
+      } else {
+        setPasswordStatus({ type: 'error', message: error.message || 'Failed to update password' });
+      }
     } finally {
       setUpdatingPassword(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto pb-20 h-full overflow-y-auto">
-      <h1 className="text-2xl font-bold text-slate-100 mb-8">Settings</h1>
+    <div className="p-6 max-w-4xl mx-auto pb-20 h-full overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-8">Settings</h1>
 
       <div className="space-y-6">
 
         {/* Appearance Settings */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-none transition-colors duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-pink-500/10 rounded-lg">
               <Palette className="text-pink-500" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100">Appearance</h2>
-              <p className="text-sm text-slate-400">Customize the look and feel.</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Appearance</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Customize the look and feel.</p>
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-slate-950 rounded-lg border border-slate-800">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 transition-colors duration-300">
               <div>
-                <h3 className="text-slate-200 font-medium">Theme Mode</h3>
-                <p className="text-sm text-slate-500">Switch between dark and light mode.</p>
+                <h3 className="text-slate-900 dark:text-slate-200 font-medium">Theme Mode</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Switch between dark and light mode.</p>
               </div>
               <button
                 onClick={toggleTheme}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-800'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-slate-800 text-slate-200' : 'bg-white border border-slate-200 text-slate-800 shadow-sm'}`}
               >
                 {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                 <span className="capitalize">{theme} Mode</span>
@@ -155,7 +171,7 @@ export default function Settings() {
             </div>
 
             <div>
-              <h3 className="text-slate-200 font-medium mb-3">Accent Color</h3>
+              <h3 className="text-slate-900 dark:text-slate-200 font-medium mb-3">Accent Color</h3>
               <div className="flex gap-3 flex-wrap">
                 {accentColors.map((color) => (
                   <button
@@ -164,8 +180,8 @@ export default function Settings() {
                     className={`
                       flex items-center gap-2 px-4 py-2 rounded-lg border transition-all
                       ${accentColor === color.value
-                        ? 'bg-slate-800 border-slate-600 text-white ring-2 ring-offset-2 ring-offset-slate-900 ring-' + color.value + '-500'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'}
+                        ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 ring-' + color.value + '-500'
+                        : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'}
                     `}
                   >
                     <div className={`w-3 h-3 rounded-full ${color.class}`} />
@@ -178,41 +194,51 @@ export default function Settings() {
         </div>
 
         {/* Account Security */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-none transition-colors duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-green-500/10 rounded-lg">
               <Shield className="text-green-500" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100">Account Security</h2>
-              <p className="text-sm text-slate-400">Manage your password and security settings.</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Account Security</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Manage your password and security settings.</p>
             </div>
           </div>
 
           <form onSubmit={handleUpdatePassword} className="space-y-4 max-w-md">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">New Password</label>
+              <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Current Password</label>
               <input
                 type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-300"
                 placeholder="••••••••"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">New Password</label>
+              <input
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-300"
+                placeholder="••••••••"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Confirm Password</label>
               <input
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-2 text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-300"
                 placeholder="••••••••"
               />
             </div>
 
             {passwordStatus.message && (
-              <div className={`p-3 rounded-lg text-sm ${passwordStatus.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+              <div className={`p-3 rounded-lg text-sm ${passwordStatus.type === 'success' ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'}`}>
                 {passwordStatus.message}
               </div>
             )}
@@ -228,40 +254,40 @@ export default function Settings() {
         </div>
 
         {/* Tag Management */}
-        <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-none transition-colors duration-300">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-indigo-500/10 rounded-lg">
               <Tag className="text-indigo-500" size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100">Tag Management</h2>
-              <p className="text-sm text-slate-400">Organize your chats with custom tags.</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Tag Management</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Organize your chats with custom tags.</p>
             </div>
           </div>
 
           {/* Create Tag Form */}
-          <form onSubmit={handleCreateTag} className="mb-8 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-6">
+          <form onSubmit={handleCreateTag} className="mb-8 bg-slate-50 dark:bg-slate-950 p-6 rounded-xl border border-slate-200 dark:border-slate-800 space-y-6 transition-colors duration-300">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-2">Tag Name</label>
+              <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Tag Name</label>
               <input
                 type="text"
                 placeholder="e.g., VIP Customer"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-4 py-3 text-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               />
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 justify-between items-end">
               <div className="space-y-3">
-                <label className="block text-sm font-medium text-slate-400">Tag Color</label>
+                <label className="block text-sm font-medium text-slate-500 dark:text-slate-400">Tag Color</label>
                 <div className="flex gap-2 flex-wrap">
                   {colors.map(color => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setNewTagColor(color)}
-                      className={`w-10 h-10 rounded-full ${color} flex items-center justify-center transition-transform ${newTagColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110' : 'hover:scale-110'}`}
+                      className={`w-10 h-10 rounded-full ${color} flex items-center justify-center transition-transform ${newTagColor === color ? 'ring-2 ring-white dark:ring-slate-900 ring-offset-2 ring-offset-slate-200 dark:ring-offset-slate-800 scale-110' : 'hover:scale-110'}`}
                     >
                       {newTagColor === color && <Check size={18} className="text-white drop-shadow-md" />}
                     </button>
@@ -288,14 +314,14 @@ export default function Settings() {
               <p className="text-slate-500 text-sm col-span-full">No tags created yet.</p>
             ) : (
               tags.map(tag => (
-                <div key={tag.id} className="flex items-center justify-between p-3 bg-slate-950 rounded-lg border border-slate-800 group">
+                <div key={tag.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 group transition-colors duration-300">
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${tag.color}`} />
-                    <span className="text-slate-200 font-medium">{tag.name}</span>
+                    <span className="text-slate-700 dark:text-slate-200 font-medium">{tag.name}</span>
                   </div>
                   <button
                     onClick={() => handleDeleteTag(tag.id)}
-                    className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 size={16} />
                   </button>
