@@ -120,16 +120,17 @@ export const ChatProvider = ({ children }) => {
 
                 if (existingChatIndex !== -1) {
                     // Update existing chat
-                    const updatedChats = [...prevChats];
-                    const chat = updatedChats[existingChatIndex];
-                    updatedChats[existingChatIndex] = {
+                    updatedChats.splice(existingChatIndex, 1);
+                    const chat = prevChats[existingChatIndex];
+
+                    const updatedChat = {
                         ...chat,
                         lastMessage: data.text,
                         lastMessageTimestamp: data.timestamp,
                         time: formatChatTime(data.timestamp),
                         unread: data.sender === 'me' ? chat.unread : chat.unread + 1
                     };
-                    return updatedChats;
+                    return [updatedChat, ...updatedChats];
                 } else {
                     // Create new chat
                     const newChat = {

@@ -63,7 +63,6 @@ async function createOrUpdateChat(chatData) {
             const { data, error } = await supabase
                 .from('chats')
                 .update({
-                    name,
                     last_message,
                     last_message_timestamp,
                     updated_at: new Date().toISOString()
