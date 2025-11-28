@@ -171,20 +171,21 @@ export default function Chats() {
     const currentMessages = selectedChat ? (messagesByChat[selectedChat.id] || []) : [];
 
     return (
-        <div className="flex h-full w-full bg-slate-950 relative">
+        <div className="flex h-full w-full bg-slate-50 dark:bg-slate-950 relative transition-colors duration-300">
             {/* Chat List */}
             <div className={`
-                flex-col bg-slate-900/50 border-r border-slate-800 h-full
+                flex-col bg-white dark:bg-slate-900/50 border-r border-slate-200 dark:border-slate-800 h-full
                 w-full md:w-96
                 ${selectedChat ? 'hidden md:flex' : 'flex'}
+                transition-colors duration-300
             `}>
-                <div className="p-4 border-b border-slate-800">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search chats..."
-                            className="w-full bg-slate-800 text-slate-200 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                            className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary placeholder-slate-500 transition-colors"
                         />
                     </div>
                 </div>
@@ -200,19 +201,19 @@ export default function Chats() {
                             <div
                                 key={chat.id}
                                 onClick={() => handleChatSelect(chat)}
-                                className={`p-4 border-b border-slate-800/50 cursor-pointer hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-800' : ''}`}
+                                className={`p-4 border-b border-slate-100 dark:border-slate-800/50 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedChat?.id === chat.id ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
                             >
                                 <div className="flex gap-3">
                                     <Avatar name={chat.name} size="md" />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-medium text-slate-200 truncate">{chat.name}</h3>
+                                            <h3 className="font-medium text-slate-900 dark:text-slate-200 truncate">{chat.name}</h3>
                                             <span className="text-xs text-slate-500 whitespace-nowrap">{chat.time}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <p className="text-sm text-slate-400 truncate pr-2">{chat.lastMessage}</p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 truncate pr-2">{chat.lastMessage}</p>
                                             {chat.unread > 0 && (
-                                                <span className="bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                                                <span className="bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
                                                     {chat.unread}
                                                 </span>
                                             )}
@@ -242,27 +243,28 @@ export default function Chats() {
 
             {/* Chat Window */}
             <div className={`
-                flex-col bg-slate-950 h-full
+                flex-col bg-slate-50 dark:bg-slate-950 h-full
                 w-full flex-1
                 ${selectedChat ? 'flex' : 'hidden md:flex'}
+                transition-colors duration-300
             `}>
                 {selectedChat ? (
                     <>
                         {/* Header */}
-                        <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900/50 transition-colors">
                             <div className="flex items-center gap-3">
                                 {/* Back Button for Mobile */}
                                 <button
                                     onClick={() => setSelectedChat(null)}
-                                    className="md:hidden text-slate-400 hover:text-slate-200 mr-1"
+                                    className="md:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mr-1"
                                 >
                                     <ArrowLeft size={24} />
                                 </button>
 
                                 <Avatar name={selectedChat.name} size="md" />
                                 <div>
-                                    <h2 className="font-bold text-slate-100">{selectedChat.name}</h2>
-                                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                                    <h2 className="font-bold text-slate-900 dark:text-slate-100">{selectedChat.name}</h2>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                                         <div className="flex items-center gap-1">
                                             {getSourceIcon(selectedChat.source)}
                                             <span className="capitalize">{selectedChat.source}</span>
@@ -294,15 +296,15 @@ export default function Chats() {
                                 <div className="relative">
                                     <button
                                         onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                                        className="p-2 text-slate-400 hover:text-indigo-400 transition-colors"
+                                        className="p-2 text-slate-400 hover:text-primary transition-colors"
                                         title="Add Tag"
                                     >
                                         <Tag size={20} />
                                     </button>
 
                                     {isTagDropdownOpen && (
-                                        <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900 border border-slate-800 rounded-lg shadow-xl z-50 p-2">
-                                            <h4 className="text-xs font-medium text-slate-400 mb-2 px-2">Add Tag</h4>
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl z-50 p-2">
+                                            <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 px-2">Add Tag</h4>
                                             <div className="space-y-1 max-h-48 overflow-y-auto">
                                                 {availableTags.length === 0 ? (
                                                     <p className="text-xs text-slate-500 px-2 py-1">No tags available. Create one in Settings.</p>
@@ -315,7 +317,7 @@ export default function Chats() {
                                                             <button
                                                                 key={tag.id}
                                                                 onClick={() => handleAddTag(tag)}
-                                                                className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-200"
+                                                                className="w-full text-left px-2 py-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"
                                                             >
                                                                 <div className={`w-2 h-2 rounded-full ${tag.color}`} />
                                                                 {tag.name}
@@ -330,7 +332,7 @@ export default function Chats() {
 
                                 <button
                                     onClick={() => setIsContactModalOpen(true)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium"
                                     title="Save Contact"
                                 >
                                     <UserPlus size={18} />
@@ -345,7 +347,7 @@ export default function Chats() {
                                             }
                                         }
                                     }}
-                                    className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
                                     title="Delete Chat"
                                 >
                                     <Trash2 size={20} />
@@ -354,7 +356,7 @@ export default function Chats() {
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-slate-50 dark:bg-slate-950 transition-colors">
                             {currentMessages.length === 0 ? (
                                 <div className="text-center text-slate-500 mt-10">
                                     <p>No messages yet.</p>
@@ -366,9 +368,9 @@ export default function Chats() {
                                         className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${msg.sender === 'me'
-                                                ? 'bg-blue-600 text-white rounded-tr-none'
-                                                : 'bg-slate-800 text-slate-200 rounded-tl-none'
+                                            className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${msg.sender === 'me'
+                                                ? 'bg-primary text-white rounded-tr-none'
+                                                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none border border-slate-200 dark:border-slate-700'
                                                 }`}
                                         >
                                             {msg.type === 'audio' ? (
@@ -381,7 +383,7 @@ export default function Chats() {
                                             ) : (
                                                 <p>{msg.text}</p>
                                             )}
-                                            <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-blue-200' : 'text-slate-500'}`}>
+                                            <span className={`text-xs mt-1 block ${msg.sender === 'me' ? 'text-white/70' : 'text-slate-400'}`}>
                                                 {msg.time}
                                             </span>
                                         </div>
@@ -391,9 +393,9 @@ export default function Chats() {
                         </div>
 
                         {/* Input */}
-                        <div className="p-4 border-t border-slate-800 bg-slate-900/50">
+                        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 transition-colors">
                             <div className="flex items-center gap-2">
-                                <button className="p-2 text-slate-400 hover:text-blue-400 transition-colors hidden sm:block">
+                                <button className="p-2 text-slate-400 hover:text-primary transition-colors hidden sm:block">
                                     <Paperclip size={20} />
                                 </button>
                                 <input
@@ -402,11 +404,11 @@ export default function Chats() {
                                     onChange={(e) => setMessage(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                                     placeholder="Type a message..."
-                                    className="flex-1 bg-slate-800 text-slate-200 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                                    className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary placeholder-slate-500 transition-colors"
                                 />
                                 <button
                                     onClick={handleSendMessage}
-                                    className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                                    className="p-2 bg-primary text-white rounded-full hover:bg-primary-hover transition-colors"
                                 >
                                     <Send size={20} />
                                 </button>
@@ -414,10 +416,10 @@ export default function Chats() {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center bg-slate-950">
-                        <div className="text-center text-slate-500">
+                    <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950 transition-colors">
+                        <div className="text-center text-slate-400 dark:text-slate-500">
                             <MessageCircle size={64} className="mx-auto mb-4 opacity-50" />
-                            <p className="text-lg font-medium">Select a chat to start messaging</p>
+                            <p className="text-lg font-medium text-slate-600 dark:text-slate-400">Select a chat to start messaging</p>
                             <p className="text-sm mt-2">Choose a conversation from the list</p>
                         </div>
                     </div>
