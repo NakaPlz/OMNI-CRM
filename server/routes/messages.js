@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendInstagramMessage } = require('../services/meta');
+const { sendInstagramMessage, sendFacebookMessage } = require('../services/meta');
 
 router.post('/send', async (req, res) => {
     const { recipientId, text, platform } = req.body;
@@ -13,6 +13,8 @@ router.post('/send', async (req, res) => {
         let result;
         if (platform === 'instagram') {
             result = await sendInstagramMessage(recipientId, text);
+        } else if (platform === 'facebook') {
+            result = await sendFacebookMessage(recipientId, text);
         } else {
             return res.status(400).json({ error: 'Unsupported platform' });
         }
@@ -83,6 +85,9 @@ router.post('/bulk', async (req, res) => {
         try {
             if (recipient.platform === 'instagram') {
                 await sendInstagramMessage(recipient.id, text);
+                results.successful.push(recipient.id);
+            } else if (recipient.platform === 'facebook') {
+                await sendFacebookMessage(recipient.id, text);
                 results.successful.push(recipient.id);
             } else {
                 results.failed.push({ id: recipient.id, error: 'Unsupported platform' });

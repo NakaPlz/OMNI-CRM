@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft, Tag, Plus, X } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, Facebook, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft, Tag, Plus, X } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { useAuth } from '../context/UserAuthContext';
 import { formatMessageTime } from '../utils/dateUtils';
@@ -127,6 +127,7 @@ export default function Chats() {
     const getSourceIcon = (source) => {
         if (source === 'whatsapp') return <Phone size={16} className="text-green-500" />;
         if (source === 'instagram') return <Instagram size={16} className="text-pink-500" />;
+        if (source === 'facebook') return <Facebook size={16} className="text-blue-600" />;
         return null;
     };
 

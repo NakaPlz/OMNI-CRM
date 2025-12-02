@@ -28,5 +28,31 @@ const sendInstagramMessage = async (recipientId, text) => {
 };
 
 module.exports = {
-    sendInstagramMessage
+    sendInstagramMessage,
+    sendFacebookMessage
+};
+
+const sendFacebookMessage = async (recipientId, text) => {
+    const token = process.env.META_ACCESS_TOKEN;
+    const pageId = '848450948341876'; // Provided by user
+    const url = `https://graph.facebook.com/v18.0/${pageId}/messages`;
+
+    const payload = {
+        recipient: { id: recipientId },
+        message: { text: text },
+        messaging_type: "RESPONSE"
+    };
+
+    try {
+        const response = await axios.post(url, payload, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error sending Facebook message:', error.response ? error.response.data : error.message);
+        throw error;
+    }
 };

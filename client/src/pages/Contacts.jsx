@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MoreHorizontal, Phone, Instagram, MessageSquare, Trash2, Edit } from 'lucide-react';
+import { Search, MoreHorizontal, Phone, Instagram, Facebook, MessageSquare, Trash2, Edit } from 'lucide-react';
 
 export default function Contacts() {
     const navigate = useNavigate();
@@ -132,6 +132,7 @@ export default function Contacts() {
     const getSourceIcon = (source) => {
         if (source === 'whatsapp') return <Phone size={16} className="text-green-500" />;
         if (source === 'instagram') return <Instagram size={16} className="text-pink-500" />;
+        if (source === 'facebook') return <Facebook size={16} className="text-blue-600" />;
         return null;
     };
 

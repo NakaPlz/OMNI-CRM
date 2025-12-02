@@ -37,8 +37,8 @@ router.post('/', verifySignature, async (req, res) => {
 
     console.log('Received webhook event:', JSON.stringify(body, null, 2));
 
-    // Forward to n8n if enabled
-    if (forwardingConfig.enabled && forwardingConfig.url) {
+    // Forward to n8n if enabled (SKIP for Facebook Page events)
+    if (forwardingConfig.enabled && forwardingConfig.url && body.object !== 'page') {
         try {
             console.log(`Forwarding to ${forwardingConfig.url}...`);
             await axios.post(forwardingConfig.url, body);
@@ -46,6 +46,8 @@ router.post('/', verifySignature, async (req, res) => {
         } catch (error) {
             console.error('Error forwarding webhook:', error.message);
         }
+    } else if (body.object === 'page') {
+        console.log('Skipping n8n forwarding for Facebook Page event.');
     }
 
     // Process the message and emit to socket.io
@@ -121,6 +123,46 @@ router.post('/', verifySignature, async (req, res) => {
                         timestamp: msg.timestamp,
                         messageId: msg.id,
                         senderName: change.contacts ? change.contacts[0].profile.name : msg.from,
+                        type: messageType,
+                        media_url: mediaUrl
+                    };
+                }
+            }
+        }
+
+        // Handle Facebook Page Payload
+        else if (body.object === 'page' && body.entry && body.entry[0].messaging) {
+            const messagingEvent = body.entry[0].messaging[0];
+            if (messagingEvent.message) {
+                // Check if the message is from us (echo) - Page ID is sender
+                const pageId = '848450948341876';
+                const isFromMe = messagingEvent.sender.id === pageId;
+
+                // Skip if it is an echo from us (unless we want to store our own replies sent from FB directly)
+                // For now, let's treat it similar to Instagram
+
+                let messageType = 'text';
+                let messageText = messagingEvent.message.text || '';
+                let mediaUrl = null;
+
+                // Check for attachments
+                if (messagingEvent.message.attachments && messagingEvent.message.attachments.length > 0) {
+                    const attachment = messagingEvent.message.attachments[0];
+                    if (attachment.type === 'audio') {
+                        messageType = 'audio';
+                        mediaUrl = attachment.payload.url;
+                        messageText = 'Audio Message';
+                    }
+                }
+
+                if (messageText || mediaUrl) {
+                    normalizedMessage = {
+                        platform: 'facebook',
+                        senderId: isFromMe ? messagingEvent.recipient.id : messagingEvent.sender.id,
+                        text: messageText,
+                        timestamp: Math.floor(messagingEvent.timestamp / 1000),
+                        messageId: messagingEvent.message.mid,
+                        sender: isFromMe ? 'me' : 'user',
                         type: messageType,
                         media_url: mediaUrl
                     };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, MessageSquare, MessageCircle, BarChart3, Instagram, Phone } from 'lucide-react';
+import { Users, MessageSquare, MessageCircle, BarChart3, Instagram, Facebook, Phone } from 'lucide-react';
 import { useAuth } from '../context/UserAuthContext';
 
 export default function Dashboard() {
@@ -128,6 +128,19 @@ export default function Dashboard() {
                             </div>
                             <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
                                 {stats.platformDistribution?.instagram || 0}
+                            </span>
+                        </div>
+
+                        {/* Facebook */}
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-600/10 rounded-lg">
+                                    <Facebook size={20} className="text-blue-600" />
+                                </div>
+                                <span className="font-medium text-slate-700 dark:text-slate-200">Facebook</span>
+                            </div>
+                            <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                                {stats.platformDistribution?.facebook || 0}
                             </span>
                         </div>
                     </div>
