@@ -53,6 +53,7 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/tags', require('./routes/tags'));
 app.use('/api/stats', require('./routes/stats'));
+app.use('/api/notes', require('./routes/notes'));
 
 // Serve static files from the React client
 app.use(express.static(path.join(__dirname, '../client/dist')));
