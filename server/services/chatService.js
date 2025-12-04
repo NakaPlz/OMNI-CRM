@@ -235,5 +235,53 @@ module.exports = {
     createMessage,
     deleteChat,
     addTagToChat,
-    removeTagFromChat
+    removeTagFromChat,
+
+    // Notes
+    async getNotes(chatId) {
+        try {
+            const { data, error } = await supabase
+                .from('notes')
+                .select('*')
+                .eq('chat_id', chatId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error getting notes:', error);
+            throw error;
+        }
+    },
+
+    async addNote(chatId, content) {
+        try {
+            const { data, error } = await supabase
+                .from('notes')
+                .insert([{ chat_id: chatId, content }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error adding note:', error);
+            throw error;
+        }
+    },
+
+    async deleteNote(noteId) {
+        try {
+            const { error } = await supabase
+                .from('notes')
+                .delete()
+                .eq('id', noteId);
+
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            throw error;
+        }
+    }
 };

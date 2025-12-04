@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft, Tag, Plus, X } from 'lucide-react';
+import { Send, Search, UserPlus, Instagram, MessageCircle, MoreVertical, Paperclip, Phone, Trash2, ArrowLeft, Tag, Plus, X, StickyNote } from 'lucide-react';
 import { useChatContext } from '../context/ChatContext';
 import { useAuth } from '../context/UserAuthContext';
 import { formatMessageTime } from '../utils/dateUtils';
@@ -17,6 +17,11 @@ export default function Chats() {
     // Tag state
     const [availableTags, setAvailableTags] = useState([]);
     const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+
+    // Notes state
+    const [showNotes, setShowNotes] = useState(false);
+    const [notes, setNotes] = useState([]);
+    const [newNote, setNewNote] = useState('');
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -80,6 +85,55 @@ export default function Chats() {
         // Mark chat as read when selected
         markChatAsRead(chat.id);
         setIsTagDropdownOpen(false);
+        setShowNotes(false); // Reset notes view
+    };
+
+    // Fetch notes when chat is selected and notes view is open
+    useEffect(() => {
+        const fetchNotes = async () => {
+            if (!selectedChat || !showNotes) return;
+            try {
+                const response = await fetch(`/api/notes/${selectedChat.id}`, {
+                    headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                });
+                const data = await response.json();
+                setNotes(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error('Error fetching notes:', error);
+            }
+        };
+        fetchNotes();
+    }, [selectedChat, showNotes, session]);
+
+    const handleSaveNote = async () => {
+        if (!newNote.trim() || !selectedChat) return;
+        try {
+            const response = await fetch('/api/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
+                body: JSON.stringify({ chatId: selectedChat.id, content: newNote })
+            });
+            const savedNote = await response.json();
+            setNotes(prev => [savedNote, ...prev]);
+            setNewNote('');
+        } catch (error) {
+            console.error('Error saving note:', error);
+        }
+    };
+
+    const handleDeleteNote = async (noteId) => {
+        try {
+            await fetch(`/api/notes/${noteId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${session?.access_token}` }
+            });
+            setNotes(prev => prev.filter(n => n.id !== noteId));
+        } catch (error) {
+            console.error('Error deleting note:', error);
+        }
     };
 
     const handleAddTag = async (tag) => {
@@ -292,6 +346,14 @@ export default function Chats() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
+                                {/* Notes Toggle */}
+                                <button
+                                    onClick={() => setShowNotes(!showNotes)}
+                                    className={`p-2 transition-colors ${showNotes ? 'text-primary bg-primary/10 rounded-lg' : 'text-slate-400 hover:text-primary'}`}
+                                    title="Internal Notes"
+                                >
+                                    <StickyNote size={20} />
+                                </button>
                                 {/* Add Tag Button */}
                                 <div className="relative">
                                     <button
@@ -426,13 +488,76 @@ export default function Chats() {
                 )}
             </div>
 
-            {/* Contact Modal */}
-            {isContactModalOpen && selectedChat && (
-                <ContactModal
-                    chatId={selectedChat.id}
-                    onClose={handleContactSaved}
-                />
+            {/* Notes Sidebar */}
+            {selectedChat && showNotes && (
+                <div className="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col h-full transition-colors duration-300">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                        <h3 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                            <StickyNote size={18} />
+                            Internal Notes
+                        </h3>
+                        <button onClick={() => setShowNotes(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                        <textarea
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            placeholder="Add a private note..."
+                            className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-200 p-3 rounded-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary resize-none h-24 text-sm transition-colors"
+                        />
+                        <div className="flex justify-end mt-2">
+                            <button
+                                onClick={handleSaveNote}
+                                disabled={!newNote.trim()}
+                                className="bg-primary text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Add Note
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {notes.length === 0 ? (
+                            <div className="text-center text-slate-400 dark:text-slate-500 py-8 text-sm">
+                                <p>No notes yet.</p>
+                                <p className="mt-1">Notes are private to your team.</p>
+                            </div>
+                        ) : (
+                            notes.map(note => (
+                                <div key={note.id} className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800 group">
+                                    <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{note.content}</p>
+                                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/50">
+                                        <span className="text-[10px] text-slate-400">
+                                            {new Date(note.created_at).toLocaleString()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDeleteNote(note.id)}
+                                            className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete note"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
             )}
         </div>
+
+            {/* Contact Modal */ }
+    {
+        isContactModalOpen && selectedChat && (
+            <ContactModal
+                chatId={selectedChat.id}
+                onClose={handleContactSaved}
+            />
+        )
+    }
+        </div >
     );
 }
