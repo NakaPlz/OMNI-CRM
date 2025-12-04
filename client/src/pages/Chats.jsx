@@ -547,17 +547,17 @@ export default function Chats() {
                     </div>
                 </div>
             )}
-        </div>
 
-            {/* Contact Modal */ }
-    {
-        isContactModalOpen && selectedChat && (
-            <ContactModal
-                chatId={selectedChat.id}
-                onClose={handleContactSaved}
-            />
-        )
-    }
-        </div >
-    );
+
+            {/* Contact Modal */}
+            {
+                isContactModalOpen && selectedChat && (
+                    <ContactModal
+                        chatId={selectedChat.id}
+                        onClose={handleContactSaved}
+                    />
+                )
+            }
+
+            );
 }
